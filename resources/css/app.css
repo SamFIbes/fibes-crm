@@ -1,0 +1,127 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
+@import '@fontsource/ibm-plex-sans-arabic/latin-400.css';
+@import 'tailwindcss';
+@import './tokens.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-latin);
+  --color-bg: var(--bg);
+  --color-background: var(--bg);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-raised: var(--raised);
+  --color-well: var(--well);
+  --color-line: var(--line);
+  --color-border: var(--line);
+  --color-line-2: var(--line-2);
+  --color-text: var(--text);
+  --color-foreground: var(--text);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--on-accent);
+  --color-secondary: var(--card-2);
+  --color-secondary-foreground: var(--text);
+  --color-accent-ink: var(--accent-ink);
+  --color-ring: var(--ring);
+  --color-navy: var(--brand-navy);
+  --color-mint: var(--brand-mint);
+  --color-aqua: var(--brand-aqua);
+  --color-sky: var(--brand-sky);
+  --color-side: var(--side);
+  --color-sidebar: var(--side);
+  --color-side-2: var(--side-2);
+  --color-side-text: var(--side-text);
+  --color-sidebar-foreground: var(--side-text);
+  --color-side-dim: var(--side-dim);
+  --color-side-faint: var(--side-faint);
+  --color-side-hover: var(--side-hover);
+  --color-sidebar-accent: var(--side-hover);
+  --color-side-line: var(--side-line);
+  --color-good: var(--good);
+  --color-good-bg: var(--good-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-bad: var(--bad);
+  --color-destructive: var(--bad);
+  --color-destructive-foreground: #ffffff;
+  --color-bad-bg: var(--bad-bg);
+  --color-input: var(--line-2);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--text);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-violet: var(--violet);
+  --color-violet-bg: var(--violet-bg);
+  --radius-card: var(--r-card);
+  --radius-tile: var(--r-tile);
+  --radius-ctl: var(--r-ctl);
+  --shadow-card: var(--shadow);
+  --shadow-lift: var(--shadow-lift);
+  --shadow-pop: var(--shadow-pop);
+  --text-2xs: var(--fs-2xs);
+  --text-xs: var(--fs-xs);
+  --text-sm: var(--fs-sm);
+  --text-md: var(--fs-md);
+  --text-base: var(--fs-base);
+  --text-lg: var(--fs-lg);
+  --text-xl: var(--fs-xl);
+  --text-2xl: var(--fs-2xl);
+  --text-3xl: var(--fs-3xl);
+  --text-display: var(--fs-display);
+}
+
+@layer base {
+  html {
+    scroll-padding-top: 5rem;
+    font-family: var(--font-latin);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  html[lang='ar'] { font-family: var(--font-arabic); }
+  html.is-dragging, html.is-dragging body { overflow-x: clip; overscroll-behavior: none; }
+  html.is-dragging, html.is-dragging * { cursor: grabbing !important; user-select: none; }
+  body {
+    overflow-x: clip;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: var(--bg-glow);
+    pointer-events: none;
+    z-index: 0;
+  }
+  #app { position: relative; z-index: 1; }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 8px; }
+  .tabular { font-variant-numeric: tabular-nums; }
+}
+
+@layer components {
+  .card { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); border: 1px solid var(--line); }
+  .text-gradient { background: var(--brand-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bg-brand-gradient { background: var(--brand-gradient); }
+  [dir='rtl'] .flip-rtl { transform: scaleX(-1); }
+  [data-brand] { direction: ltr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

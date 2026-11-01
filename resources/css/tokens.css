@@ -1,0 +1,146 @@
+/*
+ * FIBES design tokens
+ * -------------------------------------------------------------
+ * Every colour, radius, shadow, font and motion value used by the UI
+ * lives here as a CSS variable. Dark (the hero theme) is applied with
+ * `html.dark`; light is the default `:root` set. Tailwind reads these
+ * through the `@theme inline` block in index.css, so classes such as
+ * `bg-card`, `text-muted` and `rounded-card` always follow the theme.
+ * Brand: navy #0E0F2D, mint #66C48F → aqua #75CDC8 → sky #78D0E0, white.
+ */
+
+:root {
+  /* brand (fixed in both themes) */
+  --brand-navy: #0e0f2d;
+  --brand-mint: #66c48f;
+  --brand-aqua: #75cdc8;
+  --brand-sky: #78d0e0;
+  --brand-gradient: linear-gradient(120deg, #66c48f 0%, #75cdc8 52%, #78d0e0 100%);
+  --brand-gradient-soft: linear-gradient(120deg, rgb(102 196 143 / 0.18), rgb(120 208 224 / 0.12));
+
+  /* type */
+  --font-latin: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --fs-2xs: 11px;
+  --fs-xs: 12px;
+  --fs-sm: 12.5px;
+  --fs-md: 13.5px;
+  --fs-base: 14px;
+  --fs-lg: 15px;
+  --fs-xl: 17px;
+  --fs-2xl: 20px;
+  --fs-3xl: 26px;
+  --fs-display: 34px;
+
+  /* shape + space */
+  --r-card: 20px;
+  --r-tile: 16px;
+  --r-ctl: 11px;
+  --gap: 16px;
+  --side-w: 256px;
+  --rail-w: 76px;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 160ms;
+  --dur: 240ms;
+  --dur-slow: 420ms;
+
+  /* light theme surfaces */
+  --bg: #eef2f7;
+  --bg-glow: radial-gradient(1200px 600px at 85% -10%, rgb(120 208 224 / 0.22), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgb(102 196 143 / 0.16), transparent 60%);
+  --card: #ffffff;
+  --card-2: #f4f7fb;
+  --raised: #ffffff;
+  --well: rgb(14 15 45 / 0.045);
+  --line: rgb(14 15 45 / 0.08);
+  --line-2: rgb(14 15 45 / 0.15);
+  --text: #0e0f2d;
+  --muted: #4b5272;
+  --faint: #646b8a;
+  --accent: #66c48f;
+  --on-accent: #0e0f2d;
+  --accent-ink: #13784a;
+  --ring: #228a59;
+  --shadow: 0 1px 2px rgb(14 15 45 / 0.05), 0 14px 32px -24px rgb(14 15 45 / 0.35);
+  --shadow-lift: 0 2px 4px rgb(14 15 45 / 0.06), 0 26px 50px -24px rgb(14 15 45 / 0.42);
+  --shadow-pop: 0 24px 60px -18px rgb(14 15 45 / 0.38), 0 2px 8px rgb(14 15 45 / 0.08);
+
+  /* sidebar is navy in both themes */
+  --side: #0e0f2d;
+  --side-2: #171a42;
+  --side-text: #eef1fa;
+  --side-dim: #b0b6d3;
+  --side-faint: #8d94b8;
+  --side-hover: rgb(255 255 255 / 0.06);
+  --side-line: rgb(255 255 255 / 0.08);
+
+  /* semantic */
+  --good: #177a48;
+  --good-bg: #dcf3e6;
+  --warn: #8a5600;
+  --warn-bg: #fcefd5;
+  --bad: #b3261e;
+  --bad-bg: #fde3e1;
+  --info: #0f6e85;
+  --info-bg: #daf2f7;
+  --violet: #5b45c9;
+  --violet-bg: #e9e5ff;
+
+  /* chart series */
+  --c-fiber: #3fae76;
+  --c-ptp: #2fa9b8;
+  --c-ptmp: #6f8cf0;
+  --c-internal: #e0a23a;
+  --c-grid: rgb(14 15 45 / 0.07);
+
+  color-scheme: light;
+}
+
+html.dark {
+  --bg: #090a22;
+  --bg-glow: radial-gradient(1100px 620px at 88% -12%, rgb(117 205 200 / 0.16), transparent 62%),
+    radial-gradient(900px 520px at -8% 112%, rgb(102 196 143 / 0.12), transparent 60%);
+  --card: #121436;
+  --card-2: #181b44;
+  --raised: #1c2050;
+  --well: rgb(255 255 255 / 0.04);
+  --line: rgb(255 255 255 / 0.075);
+  --line-2: rgb(255 255 255 / 0.14);
+  --text: #eef1fa;
+  --muted: #aab0cf;
+  --faint: #8c93b8;
+  --accent: #66c48f;
+  --on-accent: #0e0f2d;
+  --accent-ink: #7fd9a6;
+  --ring: #78d0e0;
+  --shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04), 0 18px 40px -28px rgb(0 0 0 / 0.8);
+  --shadow-lift: inset 0 0 0 1px rgb(255 255 255 / 0.07), 0 28px 60px -26px rgb(0 0 0 / 0.9),
+    0 0 0 1px rgb(120 208 224 / 0.08);
+  --shadow-pop: inset 0 0 0 1px rgb(255 255 255 / 0.08), 0 30px 80px -20px rgb(0 0 0 / 0.85);
+
+  --side: #0b0c27;
+  --side-2: #14173d;
+
+  --good: #6fdc9d;
+  --good-bg: rgb(102 196 143 / 0.16);
+  --warn: #f4c46d;
+  --warn-bg: rgb(244 196 109 / 0.14);
+  --bad: #ff8f86;
+  --bad-bg: rgb(255 120 110 / 0.14);
+  --info: #86dcec;
+  --info-bg: rgb(120 208 224 / 0.14);
+  --violet: #b6a8ff;
+  --violet-bg: rgb(160 140 255 / 0.16);
+
+  --c-fiber: #66c48f;
+  --c-ptp: #78d0e0;
+  --c-ptmp: #8fa5ff;
+  --c-internal: #f2b860;
+  --c-grid: rgb(255 255 255 / 0.06);
+
+  color-scheme: dark;
+}

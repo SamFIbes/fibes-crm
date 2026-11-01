@@ -1,0 +1,29 @@
+# Staging override. Use a dedicated project name so it does not share the
+# development or production volumes:
+#   docker compose -p fibes-staging -f docker-compose.yml -f docker-compose.staging.yml up -d --build
+#
+# Same image targets and secret checks as production. APP_ENV=staging still
+# refuses migrate:fresh, db:wipe, and rollback.
+
+services:
+  app:
+    build:
+      target: production
+    volumes: !reset []
+    environment:
+      APP_ENV: staging
+      APP_DEBUG: "false"
+      LOG_LEVEL: info
+
+  web:
+    image: !reset null
+    build:
+      context: .
+      target: web
+    volumes: !reset []
+
+  postgres:
+    ports: !reset []
+
+  redis:
+    ports: !reset []

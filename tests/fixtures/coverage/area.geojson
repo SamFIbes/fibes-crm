@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Hamra building", "type": "building", "capacity": 4, "service": "ftth" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [35.499, 33.889],
+            [35.501, 33.889],
+            [35.501, 33.891],
+            [35.499, 33.891],
+            [35.499, 33.889]
+          ]
+        ]
+      }
+    }
+  ]
+}

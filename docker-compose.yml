@@ -1,0 +1,89 @@
+# Local development stack.
+# PostgreSQL and Redis are published on uncommon host ports.
+# The app container forces the in-network hostnames so a host .env cannot point them at localhost.
+
+name: fibes
+
+services:
+  app:
+    build:
+      context: .
+      target: development
+    env_file:
+      - .env
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    image: nginx:1.27-alpine
+    ports:
+      - "${APP_PORT:-8088}:80"
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-fibes}
+      POSTGRES_USER: ${DB_USERNAME:-fibes}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    ports:
+      - "${FORWARD_DB_PORT:-54329}:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-fibes} -d ${DB_DATABASE:-fibes}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${FORWARD_REDIS_PORT:-63799}:6379"
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  clamav:
+    image: clamav/clamav:stable
+    ports:
+      - "${FORWARD_CLAMAV_PORT:-33100}:3310"
+    restart: unless-stopped
+
+  assets:
+    profiles: ["build"]
+    image: node:22-bookworm
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: ["sh", "-c", "npm ci && npm run build"]
+
+volumes:
+  postgres:
+  redis:
+  vendor:
