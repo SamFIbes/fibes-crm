@@ -28,4 +28,5 @@ if [ "${FIBES_RUN_MIGRATIONS:-false}" = "true" ]; then
 fi
 
 su -s /bin/sh www-data -c "php artisan config:cache && php artisan route:cache && php artisan view:cache" || true
+echo "Apache MPM modules enabled: $(ls /etc/apache2/mods-enabled | grep -i mpm | tr '\n' ' ')"
 exec "$@"

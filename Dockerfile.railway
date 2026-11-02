@@ -19,7 +19,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libpq-dev libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" pdo_pgsql intl zip bcmath gd opcache pcntl \
-    && a2enmod rewrite headers remoteip \
+    && (a2dismod -f mpm_event mpm_worker || true) && a2enmod mpm_prefork rewrite headers remoteip \
     && rm -rf /var/lib/apt/lists/*
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/fibes.ini
 COPY docker/railway/apache.conf /etc/apache2/sites-available/000-default.conf
