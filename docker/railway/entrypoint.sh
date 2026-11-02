@@ -3,6 +3,8 @@ set -eu
 cd /var/www/html
 export PORT="${PORT:-8080}"
 sed -i 's/^Listen 80$//' /etc/apache2/ports.conf
+# Some runtimes do not apply the image's layer deletions: make sure only mpm_prefork is loaded.
+rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.*
 # A mounted volume starts empty and root-owned: recreate the storage tree.
 mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/public storage/app/private bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
