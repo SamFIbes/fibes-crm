@@ -77,15 +77,19 @@ return new class extends Migration
             $table->timestamp('last_located_at')->nullable();
         });
 
-        if (Schema::getConnection()->getDriverName() === 'pgsql') {
+        if (Schema::getConnection()->getDriverName() === 'pgsql' && $this->postgisAvailable()) {
+            // A savepoint keeps a failed statement (for example, no rights to create
+            // the extension) from aborting the whole migration transaction.
             try {
-                DB::statement('CREATE EXTENSION IF NOT EXISTS postgis');
-                DB::statement('ALTER TABLE coverage_items ADD COLUMN geom geometry(Geometry, 4326)');
-                DB::statement('CREATE INDEX coverage_items_geom_gix ON coverage_items USING GIST (geom)');
-                DB::statement('ALTER TABLE coverage_checks ADD COLUMN geom geometry(Point, 4326)');
-                DB::statement('CREATE INDEX coverage_checks_geom_gix ON coverage_checks USING GIST (geom)');
+                DB::transaction(function (): void {
+                    DB::statement('CREATE EXTENSION IF NOT EXISTS postgis');
+                    DB::statement('ALTER TABLE coverage_items ADD COLUMN geom geometry(Geometry, 4326)');
+                    DB::statement('CREATE INDEX coverage_items_geom_gix ON coverage_items USING GIST (geom)');
+                    DB::statement('ALTER TABLE coverage_checks ADD COLUMN geom geometry(Point, 4326)');
+                    DB::statement('CREATE INDEX coverage_checks_geom_gix ON coverage_checks USING GIST (geom)');
+                });
             } catch (Throwable) {
-                // The test database is SQLite. PostGIS is used when the extension is present.
+                // PostGIS is optional. Coverage falls back to plain latitude and longitude.
             }
         }
 
@@ -127,5 +131,10 @@ return new class extends Migration
                 $role->permissions()->syncWithoutDetaching([$permission->id => ['scope' => $scope]]);
             }
         }
+    }
+
+    private function postgisAvailable(): bool
+    {
+        return DB::selectOne("select 1 as ok from pg_available_extensions where name = 'postgis'") !== null;
     }
 };

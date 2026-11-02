@@ -1,0 +1,63 @@
+# syntax=docker/dockerfile:1
+# Single-container image for Render (or any host that gives one web service).
+# nginx + php-fpm + queue worker + scheduler under supervisord, listening on $PORT.
+# Reuses the vendor and assets stages from the main Dockerfile's recipe.
+
+FROM php:8.3-fpm-bookworm AS php-base
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libpq-dev libzip-dev libicu-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev unzip \
+        nginx supervisor gettext-base \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" pdo_pgsql intl zip bcmath gd opcache pcntl \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /etc/nginx/sites-enabled/default
+
+COPY docker/php/php.ini /usr/local/etc/php/conf.d/fibes.ini
+COPY docker/php/www.conf /usr/local/etc/php-fpm.d/zz-fibes.conf
+WORKDIR /var/www/html
+
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-autoloader
+
+FROM node:22-bookworm AS assets
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM php-base AS render
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY . .
+COPY --from=vendor /app/vendor ./vendor
+COPY --from=assets /app/public/build ./public/build
+RUN composer dump-autoload --optimize --no-dev --no-interaction \
+    && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/public bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && rm -f .env
+
+COPY docker/render/nginx.conf.template /etc/nginx/fibes.conf.template
+COPY docker/render/supervisord.conf /etc/supervisor/conf.d/fibes.conf
+COPY docker/render/start.sh /start.sh
+RUN chmod +x /start.sh
+
+ENV PORT=10000 \
+    APP_ENV=production \
+    APP_DEBUG=false \
+    LOG_CHANNEL=stderr \
+    SESSION_DRIVER=database \
+    SESSION_SECURE_COOKIE=true \
+    CACHE_STORE=database \
+    QUEUE_CONNECTION=database \
+    FIBES_FILE_SCAN_DRIVER=null \
+    DB_CONNECTION=pgsql
+
+EXPOSE 10000
+CMD ["/start.sh"]
