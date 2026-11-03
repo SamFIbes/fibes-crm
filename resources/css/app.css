@@ -1,4 +1,6 @@
-@import '@fontsource-variable/inter';
+/*! Adapted from Tend (169-tend) — © 2026 Hasib (OVERSHOOT). Licensed to itsahmadfakih@hotmail.com (order INS-17C376DF). See resources/theme/tend/LICENSE.md. */
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
 @import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
 @import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
 @import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
@@ -47,6 +49,9 @@
   --color-side-hover: var(--side-hover);
   --color-sidebar-accent: var(--side-hover);
   --color-side-line: var(--side-line);
+  --color-side-pill: var(--side-pill);
+  --color-on-side-pill: var(--on-side-pill);
+  --color-wa: var(--wa);
   --color-good: var(--good);
   --color-good-bg: var(--good-bg);
   --color-warn: var(--warn);
@@ -85,6 +90,7 @@
     scroll-padding-top: 5rem;
     font-family: var(--font-latin);
     font-size: 14px;
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -107,25 +113,64 @@
   }
   #app { position: relative; z-index: 1; }
   :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 8px; }
-  .tabular { font-variant-numeric: tabular-nums; }
+  .tabular, .num { font-variant-numeric: tabular-nums; }
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
+  select,
+  textarea {
+    border-radius: 14px;
+  }
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+    outline: none;
+  }
 }
 
 @layer components {
   .card { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); border: 1px solid var(--line); }
+  .icon-btn {
+    display: inline-grid;
+    width: 46px;
+    height: 46px;
+    flex: none;
+    place-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+  .icon-btn:hover { background: var(--card-2); }
+  a[href*='wa.me'] {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: var(--wa);
+    color: #fff;
+    font-weight: 650;
+    font-size: 13px;
+    text-decoration: none;
+  }
+  html.dark a[href*='wa.me'] { color: #052812; }
   .text-gradient { background: var(--brand-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .bg-brand-gradient { background: var(--brand-gradient); }
   [dir='rtl'] .flip-rtl { transform: scaleX(-1); }
   [data-brand] { direction: ltr; }
   .topology-flow {
-    --topo-active: #b7e0c8;
-    --topo-recent: #f0c27a;
+    --topo-active: #8fceb0;
+    --topo-recent: #e7b56a;
     --topo-error: #e08b78;
-    background: #f6f7f4;
+    background: var(--card-2);
   }
   html.dark .topology-flow {
-    --topo-active: #6fbf96;
-    --topo-recent: #e3b56a;
-    --topo-error: #f0a094;
+    --topo-active: #3cc0ad;
+    --topo-recent: #f2aa5f;
+    --topo-error: #f07a5f;
     background: var(--card-2);
   }
   .topology-flow .react-flow__attribution {

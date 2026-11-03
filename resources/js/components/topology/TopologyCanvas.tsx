@@ -68,15 +68,15 @@ const ICONS: Record<string, LucideIcon> = {
 };
 
 const BORDER: Record<ProviderStatus, string> = {
-    active: 'border-[#8ed4ae]',
-    recent: 'border-[#f0c27a]',
-    error: 'border-[#f0a598]',
+    active: 'border-[#8fceb0]',
+    recent: 'border-[#e7b56a]',
+    error: 'border-[#e08b78]',
 };
 
 const DOT: Record<ProviderStatus, string> = {
-    active: 'bg-[#3caf6e]',
-    recent: 'bg-[#f0a202]',
-    error: 'bg-[#e5484d]',
+    active: 'bg-[#1d8656]',
+    recent: 'bg-[#e9953f]',
+    error: 'bg-[#de5539]',
 };
 
 const SIDES: HandleSide[] = ['top', 'right', 'bottom', 'left'];
@@ -96,7 +96,7 @@ type ProviderFlowNode = Node<ProviderData, 'provider'>;
 const HubNode = memo(function HubNode({ data }: NodeProps<HubFlowNode>) {
     return (
         <div
-            className="flex items-center gap-2 rounded-full border border-[#f0b4bc] bg-[#fff5f6] px-2.5 text-[#c23b55] shadow-[0_10px_24px_-18px_rgb(194_59_85/0.9)] dark:border-[#e7a0ab] dark:bg-[#3a2430] dark:text-[#ffc9d2]"
+            className="flex items-center gap-2 rounded-full border border-accent bg-[color-mix(in_srgb,var(--accent)_14%,var(--card))] px-2.5 text-accent shadow-card"
             style={{ width: HUB_WIDTH, height: HUB_HEIGHT }}
             data-testid="topology-hub"
         >

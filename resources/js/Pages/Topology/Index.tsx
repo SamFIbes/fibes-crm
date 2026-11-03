@@ -5,9 +5,9 @@ import { useI18n } from '@/lib/i18n';
 import { statusCounts, type TopologyProvider } from '@/lib/providerTopology';
 
 const DOT = {
-    active: 'bg-[#3caf6e]',
-    recent: 'bg-[#f0a202]',
-    error: 'bg-[#e5484d]',
+    active: 'bg-[#1d8656]',
+    recent: 'bg-[#e9953f]',
+    error: 'bg-[#de5539]',
 } as const;
 
 export default function TopologyIndex({ providers }: { providers: TopologyProvider[] }) {

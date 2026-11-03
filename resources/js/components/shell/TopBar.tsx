@@ -10,10 +10,10 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
     const { t } = useI18n();
 
     return (
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-2 px-1 md:gap-3">
+        <header className="sticky top-0 z-30 mb-5 flex h-[46px] items-center gap-2 bg-transparent md:gap-3">
             <button
                 type="button"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-foreground transition-colors duration-200 hover:bg-secondary md:hidden"
+                className="icon-btn md:hidden"
                 onClick={onOpenMenu}
                 aria-label={t('nav.open_menu')}
             >

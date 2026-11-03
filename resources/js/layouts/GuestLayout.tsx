@@ -11,8 +11,8 @@ export function GuestLayout({ children }: { children: ReactNode }) {
 
     return (
         <div className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
-            <div className="relative hidden overflow-hidden bg-navy text-white lg:block">
-                <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_20%_15%,rgb(102_196_143/0.45),transparent_70%),radial-gradient(55%_45%_at_85%_80%,rgb(120_208_224/0.35),transparent_70%)]" />
+            <div className="relative hidden overflow-hidden bg-side text-side-text lg:block">
+                <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_18%_10%,rgb(196_236_217/0.28),transparent_70%),radial-gradient(50%_40%_at_90%_90%,rgb(76_148_220/0.18),transparent_70%)]" />
                 {reduce ? null : (
                     <motion.div
                         aria-hidden
@@ -30,7 +30,7 @@ export function GuestLayout({ children }: { children: ReactNode }) {
                     <rect width="100%" height="100%" fill="url(#dots)" />
                 </svg>
                 <div className="relative flex h-full flex-col p-12">
-                    <div className="text-sm font-semibold uppercase tracking-[0.18em] text-white/55">FIBES CRM</div>
+                    <div className="text-sm font-semibold uppercase tracking-[0.08em] text-side-dim">FIBES CRM</div>
                     <div className="my-auto">
                         <BrandLogo variant="full" tone="dark" height={210} animated className="-ms-3" />
                         <motion.h1
