@@ -4,10 +4,15 @@
 set -eu
 cd "${FIBES_APP_DIR:-/var/www/html}"
 export PORT="${PORT:-10000}"
-# Render sets RENDER_EXTERNAL_URL (https://<name>.onrender.com). Use it when APP_URL is not set.
+# Render sets RENDER_EXTERNAL_URL (https://<name>.onrender.com).
+# Railway sets RAILWAY_PUBLIC_DOMAIN (the hostname only). Use either when APP_URL is not set.
 if [ -z "${APP_URL:-}" ] && [ -n "${RENDER_EXTERNAL_URL:-}" ]; then export APP_URL="$RENDER_EXTERNAL_URL"; fi
+if [ -z "${APP_URL:-}" ] && [ -n "${RAILWAY_PUBLIC_DOMAIN:-}" ]; then export APP_URL="https://${RAILWAY_PUBLIC_DOMAIN}"; fi
 
-# Render's Postgres gives one connection string. Split it into DB_* if DB_HOST is not set.
+# Railway may inject the private Postgres URL under this name.
+if [ -z "${DATABASE_URL:-}" ] && [ -n "${DATABASE_PRIVATE_URL:-}" ]; then export DATABASE_URL="$DATABASE_PRIVATE_URL"; fi
+
+# Render and Railway give one connection string. Split it into DB_* if DB_HOST is not set.
 if [ -n "${DATABASE_URL:-}" ] && [ -z "${DB_HOST:-}" ]; then
     eval "$(php -r '
         $u = parse_url(getenv("DATABASE_URL"));

@@ -116,6 +116,25 @@
   .bg-brand-gradient { background: var(--brand-gradient); }
   [dir='rtl'] .flip-rtl { transform: scaleX(-1); }
   [data-brand] { direction: ltr; }
+  .topology-flow {
+    --topo-active: #b7e0c8;
+    --topo-recent: #f0c27a;
+    --topo-error: #e08b78;
+    background: #f6f7f4;
+  }
+  html.dark .topology-flow {
+    --topo-active: #6fbf96;
+    --topo-recent: #e3b56a;
+    --topo-error: #f0a094;
+    background: var(--card-2);
+  }
+  .topology-flow .react-flow__attribution {
+    background: transparent;
+    color: var(--faint);
+    font-size: 10px;
+  }
+  .topology-flow .react-flow__node { cursor: default; }
+  .topology-flow .react-flow__handle { opacity: 0; pointer-events: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

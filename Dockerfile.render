@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Single-container image for Render (or any host that gives one web service).
+# Single-container image for Render, Railway, or any host that gives one web service.
 # nginx + php-fpm + queue worker + scheduler under supervisord, listening on $PORT.
 # Reuses the vendor and assets stages from the main Dockerfile's recipe.
 
