@@ -25,7 +25,7 @@ export function NotificationCenter() {
                 data-testid="notifications"
                 aria-expanded={open}
                 aria-label={t('notifications.open')}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-foreground hover:bg-secondary"
+                className="icon-btn relative"
                 onClick={() => setOpen((value) => !value)}
             >
                 <Bell className="h-4 w-4" />

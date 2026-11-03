@@ -57,8 +57,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {t('a11y.skip')}
             </a>
             <Sidebar collapsed={collapsed} mobileOpen={mobileOpen} onToggle={toggle} onClose={() => setMobileOpen(false)} />
-            <div className={cn('transition-[padding] duration-300', collapsed ? 'lg:ps-[96px]' : 'lg:ps-[276px]')}>
-                <div className="mx-auto max-w-[1640px] px-4 pb-10 sm:px-6">
+            <div className={cn('transition-[padding] duration-300', collapsed ? 'lg:ps-[76px]' : 'lg:ps-[248px]')}>
+                <div className="mx-auto max-w-[1640px] px-[clamp(16px,1.8vw,30px)] pb-14 pt-5">
                     <TopBar onOpenMenu={() => setMobileOpen(true)} />
                     {inertia.props.auth.view_as ? (
                         <p className="mb-3 flex items-center justify-between gap-3 rounded-tile border border-line bg-card px-4 py-2 text-sm">

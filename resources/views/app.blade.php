@@ -10,7 +10,7 @@
         <link rel="icon" href="/brand/favicon-32.png" type="image/png" sizes="32x32">
         <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
         <link rel="manifest" href="/manifest.webmanifest">
-        <meta name="theme-color" content="#0e0f2d">
+        <meta name="theme-color" content="#0f2d29">
         <script nonce="{{ $cspNonce ?? '' }}">
             (function () {
                 try {

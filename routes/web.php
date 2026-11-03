@@ -43,6 +43,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TechController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TopologyController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -98,6 +99,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/imports/{batch}/undo', [ImportController::class, 'undo'])->middleware('permission:imports.manage')->name('imports.undo');
     Route::post('/exports/customers', [ImportController::class, 'export'])->middleware('permission:customers.view,reports.export')->name('exports.customers');
     Route::get('/automations', [AutomationController::class, 'index'])->middleware('permission:automations.view,automations.manage')->name('automations');
+    Route::get('/topology', [TopologyController::class, 'index'])->middleware('permission:settings.view,settings.manage,automations.view')->name('topology');
     Route::post('/automations', [AutomationController::class, 'store'])->middleware('permission:automations.manage')->name('automations.store');
     Route::post('/automations/pause', [AutomationController::class, 'pause'])->middleware('permission:automations.manage')->name('automations.pause');
     Route::post('/automations/webhooks', [AutomationController::class, 'webhook'])->middleware('permission:automations.manage')->name('automations.webhooks');

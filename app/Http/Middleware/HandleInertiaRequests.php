@@ -108,6 +108,7 @@ class HandleInertiaRequests extends Middleware
             'roles' => ['users.view', 'users.manage'],
             'audit' => ['audit.view'],
             'settings' => ['settings.view', 'settings.manage'],
+            'topology' => ['settings.view', 'settings.manage', 'automations.view'],
             'geography' => ['geography.view', 'geography.manage'],
             'rates' => ['rates.view', 'rates.manage'],
             'catalog' => ['catalog.view'],
