@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AbandonedCall;
 use App\Models\User;
 use App\Services\Calls\CallDesk;
 use App\Services\Customers\CustomerRecords;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class TelephonyController extends Controller
 {
@@ -38,5 +40,29 @@ class TelephonyController extends Controller
             'name' => $lookup['customer']['name_en'] ?? null,
             'pop_path' => '/calls?phone='.urlencode($phone),
         ]);
+    }
+
+    public function abandoned(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'caller' => ['required', 'string', 'max:40'],
+            'extension' => ['nullable', 'string', 'max:20'],
+            'call_id' => ['nullable', 'string', 'max:80'],
+            'abandoned_at' => ['nullable', 'date'],
+        ]);
+        $values = [
+            'caller' => $data['caller'],
+            'extension' => $data['extension'] ?? null,
+            'abandoned_at' => isset($data['abandoned_at']) ? Carbon::parse($data['abandoned_at']) : now(),
+            'created_at' => now(),
+        ];
+
+        if (filled($data['call_id'] ?? null)) {
+            $row = AbandonedCall::query()->firstOrCreate(['call_id' => $data['call_id']], $values);
+        } else {
+            $row = AbandonedCall::query()->create($values);
+        }
+
+        return response()->json(['ok' => true, 'id' => $row->id, 'stored' => $row->wasRecentlyCreated]);
     }
 }

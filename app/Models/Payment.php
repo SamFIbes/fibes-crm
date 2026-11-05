@@ -11,7 +11,8 @@ class Payment extends Model
 {
     protected $fillable = [
         'ulid', 'number', 'customer_id', 'cash_session_id', 'amount', 'tender_amount', 'currency', 'exchange_rate',
-        'method', 'reference', 'idempotency_key', 'received_by', 'received_at', 'status', 'approval_id',
+        'method', 'reference', 'idempotency_key', 'whish_checkout_id', 'whish_url', 'target_invoice_id',
+        'received_by', 'received_at', 'status', 'approval_id',
         'created_by', 'updated_by', 'version', 'archived_at',
     ];
 

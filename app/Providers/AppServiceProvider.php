@@ -11,15 +11,16 @@ use App\Listeners\RecordWonPerformance;
 use App\Logging\RedactPii;
 use App\Services\Automations\AutomationDesk;
 use App\Services\Billing\LedgerBillingGate;
-use App\Services\Collections\MockRadiusDriver;
 use App\Services\Collections\RadiusDriver;
 use App\Services\Files\ClamAvScanner;
 use App\Services\Files\FileScanner;
 use App\Services\Files\NullFileScanner;
 use App\Services\Integrations\GrandstreamClient;
+use App\Services\Integrations\HttpGrandstreamClient;
+use App\Services\Integrations\HttpKryptonRadiusClient;
+use App\Services\Integrations\HttpWhatsAppBusinessClient;
+use App\Services\Integrations\HttpWhishClient;
 use App\Services\Integrations\KryptonRadiusClient;
-use App\Services\Integrations\StubGrandstreamClient;
-use App\Services\Integrations\StubWhatsAppBusinessClient;
 use App\Services\Integrations\WhatsAppBusinessClient;
 use App\Services\Integrations\WhishClient;
 use App\Services\Opportunities\CheckedCoverageGate;
@@ -27,7 +28,6 @@ use App\Services\Opportunities\CoverageGate;
 use App\Services\Opportunities\ManagerOverrideWonGate;
 use App\Services\Opportunities\WonGate;
 use App\Services\Orders\BillingGate;
-use App\Services\Payments\LogWhishDriver;
 use App\Services\Payments\WhishDriver;
 use App\Services\Quotes\ChromiumDocumentDriver;
 use App\Services\Quotes\DocumentDriver;
@@ -58,12 +58,12 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->bind(SmsDriver::class, LogSms::class);
         $this->app->bind(BillingGate::class, LedgerBillingGate::class);
-        $this->app->bind(WhishDriver::class, LogWhishDriver::class);
-        $this->app->bind(WhishClient::class, LogWhishDriver::class);
-        $this->app->bind(RadiusDriver::class, MockRadiusDriver::class);
-        $this->app->bind(KryptonRadiusClient::class, MockRadiusDriver::class);
-        $this->app->bind(GrandstreamClient::class, StubGrandstreamClient::class);
-        $this->app->bind(WhatsAppBusinessClient::class, StubWhatsAppBusinessClient::class);
+        $this->app->bind(WhishDriver::class, HttpWhishClient::class);
+        $this->app->bind(WhishClient::class, HttpWhishClient::class);
+        $this->app->bind(RadiusDriver::class, HttpKryptonRadiusClient::class);
+        $this->app->bind(KryptonRadiusClient::class, HttpKryptonRadiusClient::class);
+        $this->app->bind(GrandstreamClient::class, HttpGrandstreamClient::class);
+        $this->app->bind(WhatsAppBusinessClient::class, HttpWhatsAppBusinessClient::class);
     }
 
     public function boot(): void

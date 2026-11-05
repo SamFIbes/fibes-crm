@@ -45,21 +45,42 @@ Copy `.env.example` to `.env` on the server. Leave the real values only in that 
 | `FIBES_CLAMAV_HOST` | `clamav` on the production compose network |
 | `FIBES_CLAMAV_PORT` | `3310` |
 | `SENTRY_DSN` | The Sentry or GlitchTip DSN. Empty means errors stay in the log. |
-| `FIBES_TELEPHONY_SECRET` | Empty until the Grandstream PBX is connected |
-| `FIBES_TELEPHONY_URL` | Empty. Optional PBX address. The screen-pop still uses the secret only |
+| `FIBES_TELEPHONY_SECRET` | Empty until the Grandstream PBX is connected. Screen-pop stays refused while this is empty |
+| `FIBES_TELEPHONY_URL` | Empty until click-to-dial. Example `https://pbx.example:8089` |
+| `FIBES_TELEPHONY_USER` | Empty. UCM HTTP API user for click-to-dial |
+| `FIBES_TELEPHONY_PASSWORD` | Empty. Never commit it |
+| `FIBES_TELEPHONY_API_PATH` | `/api` |
+| `FIBES_TELEPHONY_DIAL_ACTION` | `dialOutbound` until the UCM guide says otherwise |
 | `FIBES_ERPNEXT_URL` | `https://erp.thehubholding.com` |
 | `FIBES_ERPNEXT_API_KEY` | Empty until the Hub user has API Access |
 | `FIBES_ERPNEXT_API_SECRET` | Empty. Never commit a real secret |
 | `FIBES_ERPNEXT_ENABLED` | `false` until the key and secret exist |
 | `FIBES_ERPNEXT_WEBHOOK_SECRET` | Empty until ERP can sign stock updates |
 | `FIBES_ERPNEXT_COMPANY` | `Smart Network` |
-| `FIBES_RADIUS_URL` | Empty. Krypton has no live connection |
+| `FIBES_RADIUS` | `false` until Krypton should be called |
+| `FIBES_RADIUS_URL` | Empty. A likely value is `https://rad.smartnetworkslb.net` once the vendor guide confirms it |
 | `FIBES_RADIUS_API_KEY` | Empty |
-| `FIBES_WHISH_URL` | Empty. Whish has no live connection |
+| `FIBES_RADIUS_ALSO_TASK` | `false`. `true` also opens a NOC task after a live suspend or reactivate succeeds |
+| `FIBES_RADIUS_PATH_HEALTH` | `/api/v1/health` (assumed) |
+| `FIBES_RADIUS_PATH_USER` | `/api/v1/users/{username}` (assumed) |
+| `FIBES_RADIUS_PATH_SUSPEND` | `/api/v1/users/{username}/suspend` (assumed) |
+| `FIBES_RADIUS_PATH_REACTIVATE` | `/api/v1/users/{username}/reactivate` (assumed) |
+| `FIBES_RADIUS_PATH_SESSION` | `/api/v1/users/{username}/session` (assumed) |
+| `FIBES_WHISH` | `false` until Whish checkout should be called |
+| `FIBES_WHISH_URL` | Empty until Whish gives the merchant base URL |
 | `FIBES_WHISH_API_KEY` | Empty |
+| `FIBES_WHISH_WEBHOOK_SECRET` | Empty until Whish can sign `POST /api/v1/hooks/whish` |
+| `FIBES_WHISH_PATH_HEALTH` | `/api/v1/health` (assumed) |
+| `FIBES_WHISH_PATH_CHECKOUT` | `/api/v1/checkouts` (assumed) |
 | `FIBES_WHATSAPP` | `false`. Messages stay on `wa.me` |
 | `FIBES_WHATSAPP_TOKEN` | Empty |
-| `FIBES_WHATSAPP_PHONE_ID` | Empty |
+| `FIBES_WHATSAPP_PHONE_ID` | Empty. The numeric Meta phone number id |
+| `FIBES_WHATSAPP_GRAPH_VERSION` | `v21.0` |
+| `FIBES_WHATSAPP_VERIFY_TOKEN` | Empty. Falls back to `FIBES_META_VERIFY_TOKEN` |
+| `FIBES_WHATSAPP_APP_SECRET` | Empty. Falls back to `FIBES_META_APP_SECRET` |
+| `FIBES_WHATSAPP_TEMPLATE_RENEWAL` | `fibes_renewal_reminder` until Meta approves another name |
+| `FIBES_WHATSAPP_TEMPLATE_TICKET` | `fibes_ticket_update` |
+| `FIBES_WHATSAPP_TEMPLATE_PAYMENT` | `fibes_payment_reminder` |
 | `FIBES_WEB_FORM_SECRET` | Empty until the public website form is connected |
 | `FIBES_META_VERIFY_TOKEN` | Empty until Meta Lead Ads is connected |
 | `FIBES_META_APP_SECRET` | Empty until Meta Lead Ads is connected |
@@ -78,7 +99,7 @@ Copy `.env.example` to `.env` on the server. Leave the real values only in that 
 | `MINIO_ROOT_PASSWORD` | A new password if MinIO is used |
 | `REDIS_PASSWORD` | Empty unless Redis itself requires one |
 
-These can stay at the example values until Sam changes them: `APP_LOCALE`, `LOG_CHANNEL`, `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `QUEUE_CONNECTION`, `CACHE_STORE`, `BROADCAST_CONNECTION` (`log` until Reverb exists), `FILESYSTEM_DISK`, `FIBES_PDF_DRIVER`, `FIBES_SMS_DRIVER`, `FIBES_WHISH`, `FIBES_RADIUS`, `FIBES_FIBERDESK`, `FIBES_MAP_TILES`.
+These can stay at the example values until Sam changes them: `APP_LOCALE`, `LOG_CHANNEL`, `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `QUEUE_CONNECTION`, `CACHE_STORE`, `BROADCAST_CONNECTION` (`log` until Reverb exists), `FILESYSTEM_DISK`, `FIBES_PDF_DRIVER`, `FIBES_SMS_DRIVER`, `FIBES_WHISH`, `FIBES_RADIUS`, `FIBES_RADIUS_ALSO_TASK`, the Krypton and Whish path variables, `FIBES_TELEPHONY_API_PATH`, `FIBES_TELEPHONY_DIAL_ACTION`, `FIBES_WHATSAPP`, `FIBES_WHATSAPP_GRAPH_VERSION`, the three WhatsApp template names, `FIBES_FIBERDESK`, `FIBES_MAP_TILES`.
 
 ## Figures still to confirm
 
@@ -169,10 +190,10 @@ Islamic holiday dates stay on Settings → Holidays and stay marked to confirm u
 Settings → Integrations is the desk for these. Only a super admin can open it. Secrets stay in the environment and are never shown again after they are set. See `docs/INTEGRATIONS.md`.
 
 - Hub ERP (ERPNext at `https://erp.thehubholding.com`). The live company is Smart Network, in Lebanese pounds. Stock requests are draft Material Requests and stay off until `FIBES_ERPNEXT_ENABLED`, `FIBES_ERPNEXT_API_KEY`, and `FIBES_ERPNEXT_API_SECRET` are set. The Hub user does not have API Access yet. The signed webhook at `/api/v1/hooks/erpnext` stores a notice and does not change stock.
-- Grandstream PBX. The screen-pop stays off until `FIBES_TELEPHONY_SECRET` is set. Abandoned calls stay blank.
-- Krypton. There is no live connection. Suspension and reactivation only leave a task. A CSV import exists and stays off until `krypton_import` is turned on in Settings.
-- Whish. There is no live connection. A payment reference is typed by hand (`FIBES_WHISH` stays false).
-- WhatsApp. Links are `wa.me` only, and only when the customer has agreed. There is no WhatsApp Business API. `FIBES_WHATSAPP` stays false.
+- Grandstream PBX. The screen-pop stays off until `FIBES_TELEPHONY_SECRET` is set. Click-to-dial stays off until that secret, `FIBES_TELEPHONY_URL`, `FIBES_TELEPHONY_USER`, `FIBES_TELEPHONY_PASSWORD`, and the desk switch are set. Abandoned calls stay an empty list until the PBX pushes a signed event. FIBES does not poll the UCM.
+- Krypton. Live calls stay off until `FIBES_RADIUS`, `FIBES_RADIUS_API_KEY`, `FIBES_RADIUS_URL`, and the desk switch are on. Until then, suspension and reactivation only leave a task. A CSV import exists and stays off until `krypton_import` is turned on in Settings. The REST paths are assumed and documented in `docs/INTEGRATIONS.md`.
+- Whish. Live checkout stays off until `FIBES_WHISH`, `FIBES_WHISH_API_KEY`, `FIBES_WHISH_URL`, and the desk switch are on. A payment reference is typed by hand until then. The webhook at `/api/v1/hooks/whish` stays refused until `FIBES_WHISH_WEBHOOK_SECRET` is set.
+- WhatsApp. Links are `wa.me` only, and only when the customer has agreed, until `FIBES_WHATSAPP`, `FIBES_WHATSAPP_TOKEN`, `FIBES_WHATSAPP_PHONE_ID`, and the desk switch are on. Templates still require that consent. The inbound webhook stores delivery status and does not reply.
 - Floor-screen sounds. The files in `public/tv/sounds` are placeholders.
 - Reverb and Horizon. They are not installed. The current Laravel HTTP stack conflicts with the Guzzle library those packages need. The sales floor polls every 2 seconds, the bell every 30 seconds, and the queue container runs `php artisan queue:work`.
 - Meilisearch, MinIO, and Gotenberg are in the production compose file and are not wired into the screens yet.

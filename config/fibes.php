@@ -212,6 +212,11 @@ return [
     'telephony' => [
         'secret' => env('FIBES_TELEPHONY_SECRET'),
         'url' => env('FIBES_TELEPHONY_URL', ''),
+        // Click-to-dial uses the UCM HTTP API (not AMI). See docs/TELEPHONY.md.
+        'user' => env('FIBES_TELEPHONY_USER', ''),
+        'password' => env('FIBES_TELEPHONY_PASSWORD'),
+        'api_path' => env('FIBES_TELEPHONY_API_PATH', '/api'),
+        'dial_action' => env('FIBES_TELEPHONY_DIAL_ACTION', 'dialOutbound'),
     ],
 
     /*
@@ -278,18 +283,41 @@ return [
         'enabled' => (bool) env('FIBES_RADIUS', false),
         'url' => env('FIBES_RADIUS_URL', ''),
         'api_key' => env('FIBES_RADIUS_API_KEY'),
+        // When true, a hand task is opened even after a live suspend or reactivate succeeds.
+        'also_task' => (bool) env('FIBES_RADIUS_ALSO_TASK', false),
+        // Assumed Smart Networks / Krypton paths. Change these when the vendor guide arrives.
+        'paths' => [
+            'health' => env('FIBES_RADIUS_PATH_HEALTH', '/api/v1/health'),
+            'user' => env('FIBES_RADIUS_PATH_USER', '/api/v1/users/{username}'),
+            'suspend' => env('FIBES_RADIUS_PATH_SUSPEND', '/api/v1/users/{username}/suspend'),
+            'reactivate' => env('FIBES_RADIUS_PATH_REACTIVATE', '/api/v1/users/{username}/reactivate'),
+            'session' => env('FIBES_RADIUS_PATH_SESSION', '/api/v1/users/{username}/session'),
+        ],
     ],
 
     'whish' => [
         'enabled' => (bool) env('FIBES_WHISH', false),
         'url' => env('FIBES_WHISH_URL', ''),
         'api_key' => env('FIBES_WHISH_API_KEY'),
+        'webhook_secret' => env('FIBES_WHISH_WEBHOOK_SECRET'),
+        'paths' => [
+            'health' => env('FIBES_WHISH_PATH_HEALTH', '/api/v1/health'),
+            'checkout' => env('FIBES_WHISH_PATH_CHECKOUT', '/api/v1/checkouts'),
+        ],
     ],
 
     'whatsapp' => [
         'enabled' => (bool) env('FIBES_WHATSAPP', false),
         'token' => env('FIBES_WHATSAPP_TOKEN'),
         'phone_number_id' => env('FIBES_WHATSAPP_PHONE_ID', ''),
+        'graph_version' => env('FIBES_WHATSAPP_GRAPH_VERSION', 'v21.0'),
+        'verify_token' => env('FIBES_WHATSAPP_VERIFY_TOKEN') ?: env('FIBES_META_VERIFY_TOKEN'),
+        'app_secret' => env('FIBES_WHATSAPP_APP_SECRET') ?: env('FIBES_META_APP_SECRET'),
+        'templates' => [
+            'renewal' => env('FIBES_WHATSAPP_TEMPLATE_RENEWAL', 'fibes_renewal_reminder'),
+            'ticket' => env('FIBES_WHATSAPP_TEMPLATE_TICKET', 'fibes_ticket_update'),
+            'payment' => env('FIBES_WHATSAPP_TEMPLATE_PAYMENT', 'fibes_payment_reminder'),
+        ],
     ],
 
     'documents' => [

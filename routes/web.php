@@ -202,6 +202,8 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::patch('/customers/{customer}', [CustomerController::class, 'update'])->middleware('permission:customers.edit')->name('customers.update');
     Route::post('/customers/{customer}/services', [CustomerController::class, 'storeService'])->middleware('permission:customers.edit,services.technical.edit')->name('customers.services.store');
     Route::post('/customers/{customer}/services/{service}/reveal', [CustomerController::class, 'reveal'])->middleware('permission:services.radius_password.reveal')->name('customers.services.reveal');
+    Route::post('/customers/{customer}/services/{service}/radius', [CustomerController::class, 'radiusSession'])->middleware('permission:services.radius_fields.view,services.radius_fields.edit')->name('customers.services.radius');
+    Route::post('/customers/{customer}/whatsapp/renewal', [CustomerController::class, 'whatsappRenewal'])->middleware('permission:customers.view')->name('customers.whatsapp.renewal');
     Route::post('/customers/{customer}/notes', [CustomerController::class, 'storeNote'])->middleware('permission:customers.edit')->name('customers.notes.store');
     Route::post('/customers/{customer}/files', [CustomerController::class, 'storeFile'])->middleware('permission:attachments.upload')->name('customers.files.store');
     Route::get('/tickets', [TicketController::class, 'index'])->middleware('permission:tickets.view')->name('tickets');
@@ -212,6 +214,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::patch('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->middleware('permission:tickets.view')->name('tickets.status');
     Route::post('/tickets/{ticket}/escalate', [TicketController::class, 'escalate'])->middleware('permission:tickets.escalate')->name('tickets.escalate');
     Route::post('/tickets/{ticket}/messages', [TicketController::class, 'reply'])->middleware('permission:tickets.view')->name('tickets.messages');
+    Route::post('/tickets/{ticket}/whatsapp', [TicketController::class, 'whatsapp'])->middleware('permission:tickets.view')->name('tickets.whatsapp');
     Route::post('/tickets/{ticket}/files', [TicketController::class, 'storeFile'])->middleware('permission:attachments.upload')->name('tickets.files');
     Route::get('/incidents', [IncidentController::class, 'index'])->middleware('permission:incidents.manage')->name('incidents');
     Route::post('/incidents', [IncidentController::class, 'store'])->middleware('permission:incidents.manage')->name('incidents.store');
@@ -238,6 +241,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/calls/leads', [CallController::class, 'storeLead'])->middleware('permission:leads.create')->name('calls.leads');
     Route::post('/calls/duty', [CallController::class, 'duty'])->middleware('permission:calls.log,calls.view')->name('calls.duty');
     Route::post('/calls/extension', [CallController::class, 'extension'])->middleware('permission:calls.log,calls.view')->name('calls.extension');
+    Route::post('/calls/dial', [CallController::class, 'dial'])->middleware('permission:calls.log')->name('calls.dial');
     Route::patch('/calls/customers/{customer}', [CallController::class, 'updateContact'])->middleware('permission:customers.edit')->name('calls.contact');
     Route::get('/dispatch', [DispatchController::class, 'index'])->middleware('permission:jobs.schedule')->name('dispatch');
     Route::post('/dispatch', [DispatchController::class, 'store'])->middleware('permission:jobs.schedule,jobs.request')->name('dispatch.store');
@@ -309,6 +313,8 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/invoices/{invoice}/credit', [BillingController::class, 'credit'])->middleware('permission:invoices.issue')->name('invoices.credit');
     Route::post('/invoices/{invoice}/void', [BillingController::class, 'void'])->middleware('permission:invoices.issue')->name('invoices.void');
     Route::post('/invoices/{invoice}/write-off', [BillingController::class, 'writeOff'])->middleware('permission:payments.write_off')->name('invoices.write-off');
+    Route::post('/invoices/{invoice}/whish', [BillingController::class, 'whish'])->middleware('permission:payments.record')->name('invoices.whish');
+    Route::post('/invoices/{invoice}/whatsapp', [BillingController::class, 'whatsapp'])->middleware('permission:payments.record')->name('invoices.whatsapp');
     Route::get('/audit', [ModuleController::class, 'audit'])->middleware('permission:audit.view')->name('audit');
 
     Route::middleware('permission:users.view,users.manage')->group(function () {

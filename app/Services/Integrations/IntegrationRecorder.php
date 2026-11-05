@@ -59,8 +59,12 @@ class IntegrationRecorder
             (string) config('fibes.erpnext.webhook_secret'),
             (string) config('fibes.radius.api_key'),
             (string) config('fibes.whish.api_key'),
+            (string) config('fibes.whish.webhook_secret'),
             (string) config('fibes.whatsapp.token'),
+            (string) config('fibes.whatsapp.app_secret'),
+            (string) config('fibes.whatsapp.verify_token'),
             (string) config('fibes.telephony.secret'),
+            (string) config('fibes.telephony.password'),
         ] as $secret) {
             if ($secret !== '') {
                 $message = str_replace($secret, '[redacted]', $message);
@@ -83,7 +87,7 @@ class IntegrationRecorder
         foreach ($context as $key => $value) {
             $name = strtolower((string) $key);
 
-            if (str_contains($name, 'secret') || str_contains($name, 'token') || str_contains($name, 'api_key') || $name === 'authorization') {
+            if (str_contains($name, 'secret') || str_contains($name, 'token') || str_contains($name, 'api_key') || str_contains($name, 'password') || str_contains($name, 'cookie') || $name === 'authorization') {
                 continue;
             }
 

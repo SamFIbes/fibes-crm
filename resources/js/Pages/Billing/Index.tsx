@@ -21,6 +21,8 @@ type Row = {
     lbp: string | null;
     tax: string | null;
     customer_id: number;
+    whish_url?: string | null;
+    whatsapp_consent?: boolean;
 };
 
 type PaymentRow = {
@@ -48,6 +50,8 @@ export default function BillingIndex({
     balance_only,
     vat,
     cash_session = null,
+    whish_live = false,
+    whatsapp_live = false,
 }: {
     invoices: Row[];
     payments?: PaymentRow[];
@@ -60,6 +64,8 @@ export default function BillingIndex({
     balance_only: boolean;
     vat: string;
     cash_session?: { id: number; kind: string; status: string; expected: string; counted: string | null } | null;
+    whish_live?: boolean;
+    whatsapp_live?: boolean;
 }) {
     const { t, locale } = useI18n();
     const page = usePage<SharedProps>();
@@ -99,6 +105,16 @@ export default function BillingIndex({
                                         <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/invoices/${invoice.id}/void`, { reason: 'Issued in error' })}>{t('billing.void')}</Button>
                                         {can_write_off ? <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/invoices/${invoice.id}/write-off`)}>{t('billing.write_off')}</Button> : null}
                                     </form>
+                                ) : null}
+                                {invoice.type === 'invoice' && ['issued', 'partially_paid', 'overdue'].includes(invoice.status) ? (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {whish_live && can_record ? (
+                                            invoice.whish_url ? <a className="text-sm font-semibold text-accent-ink" href={invoice.whish_url} target="_blank" rel="noreferrer">{t('payments.whish_open')}</a> : <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/invoices/${invoice.id}/whish`, {}, { preserveScroll: true })}>{t('payments.whish_link')}</Button>
+                                        ) : null}
+                                        {whatsapp_live && invoice.whatsapp_consent && can_record ? (
+                                            <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/invoices/${invoice.id}/whatsapp`, {}, { preserveScroll: true })}>{t('payments.wa_send')}</Button>
+                                        ) : null}
+                                    </div>
                                 ) : null}
                             </article>
                         ))}

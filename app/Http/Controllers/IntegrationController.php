@@ -84,7 +84,7 @@ class IntegrationController extends Controller
 
         $result = $integration === 'erpnext'
             ? $this->testErp($erp, $settings, $recorder, $actor, $request)
-            : $this->testScaffold($integration, match ($integration) {
+            : $this->testClient($integration, match ($integration) {
                 'krypton' => $krypton->testConnection(),
                 'whish' => $whish->testConnection(),
                 'grandstream' => $grandstream->testConnection(),
@@ -129,15 +129,23 @@ class IntegrationController extends Controller
      * @param  array{ok: bool, message: string}  $result
      * @return array{ok: bool, message: string}
      */
-    private function testScaffold(string $integration, array $result, IntegrationRecorder $recorder, User $actor, Request $request): array
+    private function testClient(string $integration, array $result, IntegrationRecorder $recorder, User $actor, Request $request): array
     {
-        $recorder->attempt($integration, 'ping', 'failed', $result['message'], $actor, [], $request);
-        $key = match ($result['message']) {
-            'scaffold' => 'ui.integrations.scaffold',
-            default => 'ui.integrations.not_configured',
-        };
+        if (! $result['ok'] && $result['message'] === 'not_configured') {
+            $recorder->attempt($integration, 'ping', 'failed', 'not_configured', $actor, [], $request);
 
-        return ['ok' => false, 'message' => __($key)];
+            return ['ok' => false, 'message' => __('ui.integrations.not_configured')];
+        }
+
+        $recorder->attempt($integration, 'ping', $result['ok'] ? 'succeeded' : 'failed', $result['message'], $actor, [], $request);
+
+        if (! $result['ok']) {
+            return ['ok' => false, 'message' => $result['message'] === 'unexpected'
+                ? __('ui.integrations.unexpected')
+                : __('ui.integrations.test_failed')];
+        }
+
+        return ['ok' => true, 'message' => __('ui.integrations.tested_live')];
     }
 
     private function actor(Request $request, AccessGate $access): User

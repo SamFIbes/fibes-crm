@@ -59,6 +59,7 @@ export default function TicketShow({
     can_move,
     can_escalate,
     can_upload,
+    can_whatsapp = false,
 }: {
     ticket: Ticket;
     technicians: { id: number; name: string }[];
@@ -68,6 +69,7 @@ export default function TicketShow({
     can_move: boolean;
     can_escalate: boolean;
     can_upload: boolean;
+    can_whatsapp?: boolean;
 }) {
     const { t, locale } = useI18n();
     const page = usePage<SharedProps>();
@@ -113,6 +115,11 @@ export default function TicketShow({
                 {tierName ? <p className="mt-3 text-sm text-muted">{t('tickets.current_tier')}: {tierName}</p> : null}
                 {page.props.flash.status ? <p className="mt-3 rounded-tile bg-card px-3 py-2 text-sm ring-1 ring-line">{page.props.flash.status}</p> : null}
                 {page.props.auth.abilities?.tasks_create ? <div className="mt-3"><QuickTask customerId={ticket.customer.id} ticketId={ticket.id} /></div> : null}
+                {can_whatsapp ? (
+                    <div className="mt-4">
+                        <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/tickets/${ticket.id}/whatsapp`, {}, { preserveScroll: true })}>{t('tickets.wa_send')}</Button>
+                    </div>
+                ) : null}
                 {can_move ? (
                     <div className="mt-4 flex flex-wrap gap-2">
                         {statuses.map((status) => (

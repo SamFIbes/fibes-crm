@@ -12,7 +12,8 @@ class Invoice extends Model
     protected $fillable = [
         'ulid', 'number', 'customer_id', 'subscription_id', 'order_id', 'type', 'period_start', 'period_end',
         'currency', 'exchange_rate', 'subtotal', 'discount', 'tax', 'total', 'lbp_total', 'status', 'due_at',
-        'issued_at', 'voided_at', 'void_reason', 'pdf_attachment_id', 'created_by', 'version', 'archived_at',
+        'issued_at', 'voided_at', 'void_reason', 'pdf_attachment_id', 'whish_checkout_id', 'whish_url',
+        'created_by', 'version', 'archived_at',
     ];
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Services\Integrations;
 
+use App\Models\AbandonedCall;
 use App\Models\IntegrationAttempt;
 use App\Models\User;
 use App\Services\Settings\SettingsStore;
@@ -124,7 +125,8 @@ class IntegrationSettings
             }
         }
         $flag = $this->flag($key, $credentials);
-        $live = $flag && $credentials && $desk;
+        $address = $this->addressReady($key);
+        $live = $flag && $credentials && $desk && $address;
         $reason = 'ready';
 
         if (! $credentials) {
@@ -133,6 +135,8 @@ class IntegrationSettings
             $reason = 'flag';
         } elseif (! $desk) {
             $reason = 'desk';
+        } elseif (! $address) {
+            $reason = 'url';
         }
 
         return [
@@ -182,6 +186,10 @@ class IntegrationSettings
                 'credentials' => $runtime['credentials'],
                 'secrets' => $runtime['secrets'],
                 'reason' => $runtime['reason'],
+                'dial' => $key === 'grandstream' && $this->dialReady(),
+                'abandoned_mode' => $key === 'grandstream' ? 'push' : null,
+                'abandoned_count' => $key === 'grandstream' ? AbandonedCall::query()->count() : 0,
+                'optional_secrets' => $this->optionalSecrets($key),
                 'status' => $status,
                 'last_sync_at' => $success?->created_at?->toIso8601String(),
                 'last_error' => $latest instanceof IntegrationAttempt && $latest->status === 'failed' ? $latest->message : null,
@@ -195,6 +203,16 @@ class IntegrationSettings
     public function redact(string $message): string
     {
         return app(IntegrationRecorder::class)->redact($message);
+    }
+
+    public function dialReady(): bool
+    {
+        $runtime = $this->runtime('grandstream');
+
+        return $runtime['live']
+            && $runtime['url'] !== ''
+            && trim((string) config('fibes.telephony.user')) !== ''
+            && trim((string) config('fibes.telephony.password')) !== '';
     }
 
     public function phoneNumberId(): string
@@ -278,8 +296,32 @@ class IntegrationSettings
             ],
             'whatsapp' => [
                 ['name' => 'FIBES_WHATSAPP_TOKEN', 'set' => trim((string) config('fibes.whatsapp.token')) !== ''],
+                ['name' => 'FIBES_WHATSAPP_PHONE_ID', 'set' => preg_match('/^\d{6,32}$/', $this->phoneNumberId()) === 1],
             ],
             default => [],
+        };
+    }
+
+    /**
+     * @return list<array{name: string, set: bool}>
+     */
+    private function optionalSecrets(string $key): array
+    {
+        if ($key !== 'grandstream') {
+            return [];
+        }
+
+        return [
+            ['name' => 'FIBES_TELEPHONY_USER', 'set' => trim((string) config('fibes.telephony.user')) !== ''],
+            ['name' => 'FIBES_TELEPHONY_PASSWORD', 'set' => trim((string) config('fibes.telephony.password')) !== ''],
+        ];
+    }
+
+    private function addressReady(string $key): bool
+    {
+        return match ($key) {
+            'erpnext', 'krypton', 'whish' => $this->url($key) !== '',
+            default => true,
         };
     }
 

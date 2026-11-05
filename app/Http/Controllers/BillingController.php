@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\CreateWhishCheckout;
 use App\Models\CashSession;
+use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Billing\BillingDesk;
+use App\Services\Integrations\IntegrationSettings;
+use App\Services\Integrations\WhatsAppBusinessClient;
+use App\Services\Integrations\WhatsAppDesk;
 use App\Services\Payments\PaymentDesk;
 use App\Services\Quotes\DocumentDriver;
 use App\Services\Quotes\DocumentHtml;
@@ -18,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class BillingController extends Controller
 {
@@ -30,7 +36,7 @@ class BillingController extends Controller
         $session = CashSession::query()->where('user_id', $actor->id)->whereIn('status', ['open', 'pending_close'])->latest('id')->first();
 
         return Inertia::render('Billing/Index', [
-            'invoices' => $balanceOnly ? [] : $billing->visibleInvoices($actor)->with('customer:id,name_en,name_ar')->latest('id')->limit(40)->get()->map(fn (Invoice $invoice) => $this->row($invoice, $seeAmounts))->values(),
+            'invoices' => $balanceOnly ? [] : $billing->visibleInvoices($actor)->with('customer:id,name_en,name_ar,whatsapp_consent,whatsapp_e164')->latest('id')->limit(40)->get()->map(fn (Invoice $invoice) => $this->row($invoice, $seeAmounts))->values(),
             'payments' => $seeAmounts ? Payment::query()->with('customer:id,name_en,name_ar,whatsapp_e164,whatsapp_consent')->latest('id')->limit(20)->get()->map(fn (Payment $payment) => [
                 'id' => $payment->id,
                 'number' => $payment->number,
@@ -51,6 +57,8 @@ class BillingController extends Controller
             'see_amounts' => $seeAmounts,
             'balance_only' => $balanceOnly,
             'vat' => (string) $commercial->get('vat_percent'),
+            'whish_live' => app(IntegrationSettings::class)->runtime('whish')['live'],
+            'whatsapp_live' => app(WhatsAppBusinessClient::class)->ready(),
             'cash_session' => $session instanceof CashSession ? [
                 'id' => $session->id,
                 'kind' => $session->kind,
@@ -129,6 +137,54 @@ class BillingController extends Controller
         return back()->with('status', __('ui.billing.approval_needed'));
     }
 
+    public function whish(Request $request, Invoice $invoice, AccessGate $access, BillingDesk $billing, IntegrationSettings $settings): RedirectResponse
+    {
+        $actor = $access->effective($request);
+        abort_unless($actor instanceof User, 403);
+        abort_unless($billing->visibleInvoices($actor)->whereKey($invoice->id)->exists(), 404);
+
+        if (! $settings->runtime('whish')['live'] || ! in_array($invoice->status, ['issued', 'partially_paid', 'overdue'], true) || $invoice->type !== 'invoice') {
+            return back()->withErrors(['whish' => __('ui.payments.whish_off')]);
+        }
+
+        try {
+            CreateWhishCheckout::dispatch($invoice->id, $actor->id);
+        } catch (Throwable) {
+            return back()->withErrors(['whish' => __('ui.integrations.test_failed')]);
+        }
+
+        return back()->with('status', __('ui.payments.whish_ready'));
+    }
+
+    public function whatsapp(Request $request, Invoice $invoice, AccessGate $access, BillingDesk $billing, WhatsAppDesk $whatsapp): RedirectResponse
+    {
+        $actor = $access->effective($request);
+        abort_unless($actor instanceof User, 403);
+        abort_unless($billing->visibleInvoices($actor)->whereKey($invoice->id)->exists(), 404);
+        $invoice->loadMissing('customer');
+        $customer = $invoice->customer;
+
+        if (! $customer instanceof Customer) {
+            return back()->withErrors(['whatsapp' => __('ui.whatsapp.off')]);
+        }
+
+        try {
+            $result = $whatsapp->queue($customer, 'payment', [
+                (string) $customer->name_en,
+                (string) $invoice->number,
+                (string) $invoice->total,
+            ], $actor);
+        } catch (Throwable) {
+            return back()->withErrors(['whatsapp' => __('ui.whatsapp.failed')]);
+        }
+
+        return match ($result) {
+            'queued' => back()->with('status', __('ui.whatsapp.sent')),
+            'no_consent' => back()->withErrors(['whatsapp' => __('ui.whatsapp.no_consent')]),
+            default => back()->withErrors(['whatsapp' => __('ui.whatsapp.off')]),
+        };
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -145,6 +201,8 @@ class BillingController extends Controller
             'lbp' => $seeAmounts ? (string) $invoice->lbp_total : null,
             'tax' => $seeAmounts ? (string) $invoice->tax : null,
             'customer_id' => $invoice->customer_id,
+            'whish_url' => $invoice->whish_url,
+            'whatsapp_consent' => (bool) $invoice->customer?->whatsapp_consent && filled($invoice->customer?->whatsapp_e164),
         ];
     }
 }
