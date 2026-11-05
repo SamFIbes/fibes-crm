@@ -232,3 +232,24 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Unlayered so these beat Tailwind utilities. Every desk that still paints a solid card inherits the glass. */
+.bg-card,
+.bg-popover {
+  background-color: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+}
+.bg-card-2 {
+  background-color: var(--glass-strong);
+}
+select,
+textarea,
+input[type='date'],
+input[type='datetime-local'],
+input[type='time'],
+input[type='month'] {
+  background-color: var(--field-bg);
+  border-color: var(--glass-border);
+  color: var(--text);
+}

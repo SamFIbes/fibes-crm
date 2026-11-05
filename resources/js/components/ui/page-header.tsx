@@ -6,10 +6,10 @@ export function PageHeader({ title, sub, actions, crumbs }: { title: ReactNode; 
     const reduce = useReducedMotion();
 
     return (
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+        <div className="card mb-5 flex flex-wrap items-end justify-between gap-4 px-5 py-4">
             <div className="min-w-0">
                 {crumbs ? <div className="mb-2 flex items-center gap-1.5 text-sm text-muted">{crumbs}</div> : null}
-                <motion.h1 initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: easeOut }} className="text-[30px] font-semibold leading-tight tracking-[-0.025em] sm:text-display">
+                <motion.h1 initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: easeOut }} className="text-2xl font-semibold leading-tight tracking-[-0.025em] sm:text-3xl">
                     {title}
                 </motion.h1>
                 {sub ? (

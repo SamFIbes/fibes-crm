@@ -46,7 +46,7 @@ export default function RoleEdit({ role, permissions }: { role: RoleInfo; permis
         <AppShell>
             <Head title={role ? role.name_en : t('admin.permissions')} />
             <form onSubmit={submit} className="mx-auto max-w-4xl">
-                <div className="flex flex-wrap items-end justify-between gap-3">
+                <div className="card flex flex-wrap items-end justify-between gap-3 px-5 py-4">
                     <div>
                         <h1 className="text-3xl font-semibold tracking-tight">{role?.name_en ?? t('admin.permissions')}</h1>
                         <p className="mt-2 text-sm text-muted-foreground">{role?.locked ? t('admin.locked_help') : t('admin.grid_help')}</p>

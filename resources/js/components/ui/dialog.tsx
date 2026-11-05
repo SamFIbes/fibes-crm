@@ -16,7 +16,7 @@ export const DialogContent = forwardRef<HTMLDivElement, ComponentPropsWithoutRef
             <DialogPrimitive.Content
                 ref={ref}
                 className={cn(
-                    'fixed left-1/2 top-1/2 z-50 w-[min(100%-2rem,36rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-popover text-popover-foreground shadow-xl duration-200',
+                    'glass-strong fixed left-1/2 top-1/2 z-50 w-[min(100%-2rem,36rem)] -translate-x-1/2 -translate-y-1/2 text-popover-foreground shadow-xl duration-200',
                     className,
                 )}
                 {...props}
