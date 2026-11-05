@@ -88,19 +88,20 @@ export default function TicketShow({
         <AppShell>
             <Head title={ticket.subject} />
             <div data-testid="ticket-page">
-                <p className="text-xs text-faint"><Link href="/tickets">{t('tickets.title')}</Link> · <span dir="ltr">{ticket.number}</span></p>
-                <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
+                <div className="card flex flex-wrap items-start justify-between gap-3 p-5">
                     <div>
-                        <h1 className="text-3xl font-semibold tracking-tight">{ticket.subject}</h1>
+                        <p className="text-xs text-faint"><Link href="/tickets">{t('tickets.title')}</Link> · <span dir="ltr">{ticket.number}</span></p>
+                        <h1 className="mt-1 text-3xl font-semibold tracking-tight">{ticket.subject}</h1>
                         <p className="mt-1 text-sm text-muted">
                             <Link href={`/customers/${ticket.customer.id}`} className="font-semibold text-accent-ink">{name}</Link>
                             {' · '}{locale === 'ar' ? ticket.category.name_ar : ticket.category.name_en}
                             {' · '}{t(`tickets.channel_${ticket.channel}`)}
+                            {ticket.assignee ? ` · ${ticket.assignee}` : ''}
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        <Badge tone={ticket.priority === 'P1' ? 'bad' : 'info'}>{ticket.priority}</Badge>
-                        <Badge tone={ticket.sla.resolve.state === 'breached' ? 'bad' : ticket.sla.resolve.state === 'warning' ? 'warn' : 'neutral'}>
+                        <Badge tone={ticket.priority === 'P1' ? 'bad' : ticket.priority === 'P2' ? 'warn' : 'info'} dot>{t(`tickets.priority_${ticket.priority}`)}</Badge>
+                        <Badge tone={ticket.sla.resolve.state === 'breached' ? 'bad' : ticket.sla.resolve.state === 'warning' ? 'warn' : 'good'} dot>
                             {t('tickets.resolve')} {ticket.sla.resolve.state}
                         </Badge>
                     </div>
@@ -122,29 +123,34 @@ export default function TicketShow({
                         ))}
                     </div>
                 ) : null}
-                <section className="card mt-4 divide-y divide-line" data-testid="ticket-timeline">
-                    {ticket.timeline.map((item) => (
-                        <article key={item.id} className="px-5 py-4">
-                            {item.kind === 'escalation' ? (
-                                <>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-faint">
-                                        {item.direction === 'deescalate' ? t('tickets.deescalate') : t('tickets.escalate')}
-                                        {item.automatic ? ` · ${t('tickets.automatic')}` : ''} · {item.author || t('tickets.automatic')}
-                                    </p>
-                                    <p className="mt-2 text-sm font-semibold">
-                                        {(locale === 'ar' ? item.from_tier_ar : item.from_tier_en) || '—'} → {(locale === 'ar' ? item.to_tier_ar : item.to_tier_en) || '—'}
-                                    </p>
-                                    <p className="mt-1 text-sm">{item.reason}</p>
-                                    <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{item.note}</p>
-                                </>
-                            ) : (
-                                <>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-faint">{item.visibility === 'internal' ? t('tickets.internal') : t('tickets.public')} · {item.author}</p>
-                                    <p className="mt-2 whitespace-pre-wrap text-sm">{item.body}</p>
-                                </>
-                            )}
-                        </article>
-                    ))}
+                <section className="card mt-4 p-5" data-testid="ticket-timeline">
+                    <h2 className="text-sm font-semibold">{t('customers.timeline')}</h2>
+                    <ol className="relative mt-4 space-y-4 border-s border-aqua/30 ps-5">
+                        {ticket.timeline.length === 0 ? <li className="text-sm text-muted">{t('customers.no_activity')}</li> : null}
+                        {ticket.timeline.map((item) => (
+                            <li key={item.id} className="relative">
+                                <span className="absolute -start-[26px] top-1 size-2.5 rounded-full bg-mint shadow-[0_0_12px_var(--brand-mint)]" />
+                                {item.kind === 'escalation' ? (
+                                    <>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-faint">
+                                            {item.direction === 'deescalate' ? t('tickets.deescalate') : t('tickets.escalate')}
+                                            {item.automatic ? ` · ${t('tickets.automatic')}` : ''} · {item.author || t('tickets.automatic')}
+                                        </p>
+                                        <p className="mt-1 text-sm font-semibold">
+                                            {(locale === 'ar' ? item.from_tier_ar : item.from_tier_en) || '—'} → {(locale === 'ar' ? item.to_tier_ar : item.to_tier_en) || '—'}
+                                        </p>
+                                        <p className="mt-1 text-sm">{item.reason}</p>
+                                        <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{item.note}</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-faint">{item.visibility === 'internal' ? t('tickets.internal') : t('tickets.public')} · {item.author}</p>
+                                        <p className="mt-1 whitespace-pre-wrap text-sm">{item.body}</p>
+                                    </>
+                                )}
+                            </li>
+                        ))}
+                    </ol>
                 </section>
                 {can_move ? (
                     <form className="card mt-4 grid gap-3 p-5" onSubmit={send}>
