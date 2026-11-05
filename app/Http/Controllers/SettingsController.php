@@ -60,6 +60,7 @@ class SettingsController extends Controller
             'categories' => TicketCategory::query()->orderBy('sort')->get(['id', 'key', 'name_en', 'name_ar', 'is_active']),
             'wrap_up_codes' => WrapUpCode::query()->orderBy('sort')->get(['id', 'key', 'name_en', 'name_ar', 'is_active']),
             'can_manage' => $actor instanceof User && $access->allows($actor, 'settings.manage'),
+            'can_integrations' => $actor instanceof User && $access->allows($actor, 'integrations.manage'),
             'commercial' => app(CommercialSettings::class)->all(),
         ]);
     }

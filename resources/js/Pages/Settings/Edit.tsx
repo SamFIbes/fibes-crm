@@ -67,6 +67,7 @@ export default function SettingsEdit({
     teams = [],
     people = [],
     can_manage,
+    can_integrations = false,
     commercial,
 }: {
     company: Company;
@@ -79,6 +80,7 @@ export default function SettingsEdit({
     teams?: TeamRow[];
     people?: Person[];
     can_manage: boolean;
+    can_integrations?: boolean;
     commercial: Record<string, string | number | boolean>;
 }) {
     const { t, locale } = useI18n();
@@ -110,6 +112,7 @@ export default function SettingsEdit({
         <AppShell>
             <Head title={t('settings_page.title')} />
             <PageHeader title={t('settings_page.title')} sub={t('settings_page.subtitle')} />
+            {can_integrations ? <p className="mb-4"><a className="text-sm font-semibold text-accent-ink" href="/settings/integrations">{t('integrations.open')}</a></p> : null}
             {flash.status ? <p className="mb-4 rounded-tile bg-card px-3 py-2 text-sm ring-1 ring-line">{flash.status}</p> : null}
             <form onSubmit={save} className="grid gap-4" data-testid="settings-page">
                 <section className="card space-y-4 p-5">

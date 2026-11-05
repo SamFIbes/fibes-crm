@@ -23,6 +23,7 @@ use App\Http\Controllers\GeographyController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LocaleController;
@@ -149,6 +150,9 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/contracts/{contract}/sign', [QuoteController::class, 'sign'])->middleware('permission:contracts.manage')->name('contracts.sign');
     Route::post('/contracts/{contract}/scan', [QuoteController::class, 'scan'])->middleware('permission:contracts.manage')->name('contracts.scan');
     Route::get('/contracts/{contract}/print', [QuoteController::class, 'printContract'])->middleware('permission:contracts.manage,contracts.view')->name('contracts.print');
+    Route::get('/settings/integrations', [IntegrationController::class, 'edit'])->middleware('permission:integrations.view,integrations.manage')->name('settings.integrations');
+    Route::put('/settings/integrations', [IntegrationController::class, 'update'])->middleware('permission:integrations.manage')->name('settings.integrations.update');
+    Route::post('/settings/integrations/{integration}/test', [IntegrationController::class, 'test'])->middleware('permission:integrations.manage')->name('settings.integrations.test');
     Route::get('/settings', [SettingsController::class, 'edit'])->middleware('permission:settings.view,settings.manage')->name('settings');
     Route::put('/settings', [SettingsController::class, 'update'])->middleware('permission:settings.manage')->name('settings.update');
     Route::put('/settings/commercial', [SettingsController::class, 'updateCommercial'])->middleware('permission:settings.manage')->name('settings.commercial');
@@ -262,6 +266,8 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/inventory/write-off', [InventoryController::class, 'writeOff'])->middleware('permission:inventory.adjust')->name('inventory.write-off');
     Route::post('/inventory/reservations', [InventoryController::class, 'reserve'])->middleware('permission:inventory.reserve')->name('inventory.reserve');
     Route::post('/inventory/counts', [InventoryController::class, 'count'])->middleware('permission:inventory.view,inventory.move')->name('inventory.count');
+    Route::post('/inventory/issue', [InventoryController::class, 'issue'])->middleware('permission:inventory.move')->name('inventory.issue');
+    Route::post('/inventory/erp-request', [InventoryController::class, 'requestFromErp'])->middleware('permission:inventory.move')->name('inventory.erp');
     Route::get('/network', [NetworkController::class, 'index'])->middleware('permission:services.technical.view,services.technical.edit,coverage.view,jobs.schedule')->name('network');
     Route::post('/network/nodes', [NetworkController::class, 'store'])->middleware('permission:services.technical.edit')->name('network.store');
     Route::post('/tickets/{ticket}/csat', [CsatController::class, 'manual'])->middleware('permission:tickets.view')->name('tickets.csat');
