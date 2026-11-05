@@ -25,6 +25,10 @@ type Card = {
     flag: boolean;
     secrets: Secret[];
     reason: string;
+    dial?: boolean;
+    abandoned_mode?: 'push' | null;
+    abandoned_count?: number;
+    optional_secrets?: Secret[];
     status: Status;
     last_sync_at: string | null;
     last_error: string | null;
@@ -140,6 +144,12 @@ export default function IntegrationsPage({ cards, locations, can_manage }: { car
                                     {t(card.key === 'erpnext' && card.reason === 'credentials' ? 'integrations.off_reason_credentials' : `integrations.off_reason_${card.reason === 'credentials' ? 'missing' : card.reason}`)}
                                 </p>
                             ) : null}
+                            {card.key === 'grandstream' ? (
+                                <p className="text-sm text-muted">{card.dial ? t('integrations.dial_on') : t('integrations.dial_off')}</p>
+                            ) : null}
+                            {card.abandoned_mode === 'push' ? (
+                                <p className="text-sm text-muted">{t('integrations.abandoned_push', { count: card.abandoned_count ?? 0 })}</p>
+                            ) : null}
                             {card.last_sync_at ? <p className="text-sm text-muted" dir="ltr">{t('integrations.last_sync', { time: card.last_sync_at })}</p> : null}
                             {card.last_error ? <p className="text-sm text-bad">{t('integrations.last_error')}: {card.last_error}</p> : null}
                             {card.key !== 'whatsapp' ? (
@@ -174,6 +184,12 @@ export default function IntegrationsPage({ cards, locations, can_manage }: { car
                                 <p className="mt-1 text-xs text-muted">{t('integrations.secret_help')}</p>
                                 <ul className="mt-2 space-y-1">
                                     {card.secrets.map((secret) => (
+                                        <li key={secret.name} className="flex items-center justify-between gap-3 text-sm">
+                                            <span dir="ltr">{secret.name}</span>
+                                            <SolidBadge tone={secret.set ? 'good' : 'neutral'}>{secret.set ? t('integrations.secret_set') : t('integrations.secret_missing')}</SolidBadge>
+                                        </li>
+                                    ))}
+                                    {(card.optional_secrets ?? []).map((secret) => (
                                         <li key={secret.name} className="flex items-center justify-between gap-3 text-sm">
                                             <span dir="ltr">{secret.name}</span>
                                             <SolidBadge tone={secret.set ? 'good' : 'neutral'}>{secret.set ? t('integrations.secret_set') : t('integrations.secret_missing')}</SolidBadge>

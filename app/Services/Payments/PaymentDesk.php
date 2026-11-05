@@ -22,6 +22,7 @@ use App\Services\Billing\InvoiceNumbers;
 use App\Services\Billing\Ledger;
 use App\Services\Billing\MoneyMath;
 use App\Services\Collections\CollectionsDesk;
+use App\Services\Integrations\WhishClient;
 use App\Services\Opportunities\OpportunityMoney;
 use App\Services\Performance\CommissionDesk;
 use App\Services\Settings\CommercialSettings;
@@ -44,7 +45,7 @@ class PaymentDesk
         private CashSessionMachine $sessions,
         private AuditLogger $audit,
         private OpportunityMoney $lbp,
-        private WhishDriver $whish,
+        private WhishClient $whish,
         private AccessGate $access,
     ) {}
 
@@ -106,7 +107,7 @@ class PaymentDesk
         ]);
         $this->event($payment, null, (string) $payment->status, $actor);
 
-        if ($method === 'whish' && config('fibes.whish.enabled')) {
+        if ($method === 'whish' && config('fibes.whish.enabled') && ! $this->whish->ready()) {
             $this->whish->charge((string) ($payment->reference ?: $payment->number), (string) $payment->tender_amount, $currency);
         }
 
@@ -148,7 +149,7 @@ class PaymentDesk
         $payment->updated_by = $actor->id;
         $payment->save();
         $this->event($payment, $from, 'confirmed', $actor);
-        $this->commit($payment, $actor, $request, null);
+        $this->commit($payment, $actor, $request, $payment->target_invoice_id ? (int) $payment->target_invoice_id : null);
         $this->audit->record('payment.confirmed', $actor, [
             'payment_id' => $payment->id,
             'customer_id' => $payment->customer_id,
@@ -266,6 +267,41 @@ class PaymentDesk
         foreach ($payments as $payment) {
             $this->allocate($payment, $invoice->id, $invoice->id, $actor);
         }
+    }
+
+    public function openWhish(Invoice $invoice, string $checkoutId, string $url, User $actor): Payment
+    {
+        $existing = Payment::query()->where('idempotency_key', 'whish-checkout:'.$checkoutId)->first();
+
+        if ($existing instanceof Payment) {
+            return $existing;
+        }
+
+        $year = (int) now()->year;
+        $payment = Payment::query()->create([
+            'number' => $this->numbers->format('RC', $year, $this->numbers->next('RC', $year)),
+            'customer_id' => $invoice->customer_id,
+            'amount' => bcadd((string) $invoice->total, '0', 2),
+            'tender_amount' => bcadd((string) $invoice->total, '0', 2),
+            'currency' => 'USD',
+            'exchange_rate' => bcadd((string) ($invoice->exchange_rate ?: '1'), '0', 4),
+            'method' => 'whish',
+            'idempotency_key' => 'whish-checkout:'.$checkoutId,
+            'whish_checkout_id' => $checkoutId,
+            'whish_url' => $url !== '' ? $url : null,
+            'target_invoice_id' => $invoice->id,
+            'received_by' => $actor->id,
+            'received_at' => now(),
+            'status' => 'pending',
+            'created_by' => $actor->id,
+            'updated_by' => $actor->id,
+        ]);
+        $this->event($payment, null, 'pending', $actor);
+        $invoice->whish_checkout_id = $checkoutId;
+        $invoice->whish_url = $url !== '' ? $url : null;
+        $invoice->save();
+
+        return $payment;
     }
 
     public function whatsapp(Payment $payment): ?string

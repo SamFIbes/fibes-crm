@@ -45,6 +45,8 @@ export default function CallsIndex({
     can_edit,
     can_ticket,
     can_board,
+    can_dial = false,
+    abandoned = [],
 }: {
     phone: string;
     result: Result | null;
@@ -56,6 +58,8 @@ export default function CallsIndex({
     can_edit: boolean;
     can_ticket: boolean;
     can_board: boolean;
+    can_dial?: boolean;
+    abandoned?: { id: number; caller: string; extension: string | null; at: string | null }[];
 }) {
     const { t, locale } = useI18n();
     const page = usePage<SharedProps>();
@@ -109,6 +113,21 @@ export default function CallsIndex({
                 actions={can_board ? <Button type="button" variant="outline" onClick={() => router.visit('/calls/board')}>{t('calls.board')}</Button> : null}
             />
             {page.props.flash.status ? <p className="mb-3 rounded-tile bg-card px-3 py-2 text-sm ring-1 ring-line">{page.props.flash.status}</p> : null}
+            {page.props.errors?.dial ? <p className="mb-3 rounded-tile border border-bad/40 bg-bad-bg px-3 py-2 text-sm text-bad" role="alert">{page.props.errors.dial}</p> : null}
+            <section className="card mb-4 p-4" data-testid="abandoned-calls">
+                <h2 className="text-sm font-semibold">{t('calls.abandoned')}</h2>
+                <p className="mt-1 text-sm text-muted">{t('calls.abandoned_help')}</p>
+                {abandoned.length === 0 ? <p className="mt-2 text-sm text-muted">{t('calls.abandoned_empty')}</p> : (
+                    <ul className="mt-2 divide-y divide-line">
+                        {abandoned.map((call) => (
+                            <li key={call.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                                <span dir="ltr">{call.caller}{call.extension ? ` · ${call.extension}` : ''}</span>
+                                {can_dial ? <Button type="button" size="sm" variant="outline" onClick={() => router.post('/calls/dial', { phone: call.caller }, { preserveScroll: true })}>{t('calls.dial')}</Button> : null}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </section>
             <form className="mb-4 flex flex-wrap items-end gap-2" onSubmit={find} data-testid="calls-page">
                 <Field id="call-search" label={t('calls.search')}>
                     <Input ref={search} id="call-search" dir="ltr" autoFocus value={lookup.data.phone} onChange={(event) => lookup.setData('phone', event.target.value)} placeholder={t('calls.placeholder')} />
@@ -124,6 +143,7 @@ export default function CallsIndex({
                 <section className="card p-5" data-testid="call-unknown">
                     <h2 className="text-lg font-semibold">{t('calls.unknown')}</h2>
                     <p className="mt-1 text-sm text-muted" dir="ltr">{result.phone_display}</p>
+                    {can_dial ? <Button type="button" className="mt-3" size="sm" onClick={() => router.post('/calls/dial', { phone: result.phone ?? result.phone_display }, { preserveScroll: true })}>{t('calls.dial')}</Button> : null}
                     {result.whatsapp_url ? <a className="mt-3 inline-block text-sm font-semibold text-accent-ink" href={result.whatsapp_url} target="_blank" rel="noreferrer">{t('calls.whatsapp')}</a> : null}
                     {can_lead ? (
                         <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={(event) => { event.preventDefault(); lead.post('/calls/leads', { preserveScroll: true }); }}>
@@ -151,6 +171,7 @@ export default function CallsIndex({
                             <Badge tone={customer.status === 'active' ? 'good' : 'warn'}>{t(`customers.${customer.status}`)}</Badge>
                         </div>
                         <p className="mt-3 text-sm" dir="ltr">{customer.phones.join(' · ') || '—'}</p>
+                        {can_dial ? <Button type="button" className="mt-3" size="sm" onClick={() => router.post('/calls/dial', { phone: result.phone ?? customer.phones[0] }, { preserveScroll: true })}>{t('calls.dial')}</Button> : null}
                         <div className="mt-4 flex flex-wrap gap-2">
                             {result.whatsapp_url ? <a className="inline-flex h-9 items-center rounded-ctl bg-accent px-3 text-sm font-semibold text-on-accent" href={result.whatsapp_url} target="_blank" rel="noreferrer">{t('calls.whatsapp')}</a> : null}
                             {can_ticket ? <Button type="button" variant="outline" onClick={() => router.visit(`/tickets?new=1&customer=${customer.id}`)}>{t('tickets.new')}</Button> : null}

@@ -4,10 +4,14 @@ namespace App\Services\Integrations;
 
 interface GrandstreamClient
 {
+    public function dialReady(): bool;
+
     /**
-     * The screen-pop stays on FIBES_TELEPHONY_SECRET. This does not call the PBX.
+     * Challenge only. It does not place a call.
      *
      * @return array{ok: bool, message: string}
      */
     public function testConnection(): array;
+
+    public function dial(string $extension, string $destination): void;
 }

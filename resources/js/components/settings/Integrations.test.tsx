@@ -52,6 +52,8 @@ const copy = {
         secret_set: 'Set in the environment',
         off_reason_credentials: 'API credentials are not set.',
         off_reason_missing: 'The environment secret is not set.',
+        dial_off: 'Click-to-dial is off until the PBX address, API user, and API password are set.',
+        abandoned_push: 'Abandoned calls: :count recorded from signed PBX events. FIBES does not poll the UCM and does not invent a count.',
         company: 'Company',
         url: 'Base URL',
         warehouse: 'Default warehouse',
@@ -135,5 +137,28 @@ describe('Integrations desk', () => {
         expect(desk.innerHTML).not.toContain('glass-field');
         expect(desk.innerHTML).not.toContain('backdrop-blur');
         expect(desk.innerHTML).not.toContain('live-secret-value');
+    });
+
+    it('says click-to-dial is off and does not invent an abandoned-call count', () => {
+        page.props = {
+            locale: 'en',
+            dir: 'ltr',
+            translations: copy,
+            auth: { user: { id: 1, name: 'Sam Admin', email: 'a@example.com', locale: 'en', two_factor_enabled: false, role: 'super_admin' }, nav: ['dashboard', 'integrations'], view_as: null },
+            flash: {},
+            security: { must_change_password: false, two_factor_grace_days: null },
+            app: { name: 'FIBES' },
+        };
+        render(
+            <I18nProvider locale="en" dir="ltr" translations={copy}>
+                <ThemeProvider>
+                    <IntegrationsPage cards={[{ ...card, key: 'grandstream', url: '', dial: false, abandoned_mode: 'push', abandoned_count: 0, secrets: [{ name: 'FIBES_TELEPHONY_SECRET', set: false }] }]} locations={[]} can_manage />
+                </ThemeProvider>
+            </I18nProvider>,
+        );
+
+        expect(screen.getByText('Click-to-dial is off until the PBX address, API user, and API password are set.')).toBeInTheDocument();
+        expect(screen.getByText('Abandoned calls: 0 recorded from signed PBX events. FIBES does not poll the UCM and does not invent a count.')).toBeInTheDocument();
+        expect(screen.getByTestId('integrations-page').innerHTML).not.toContain('backdrop-blur');
     });
 });

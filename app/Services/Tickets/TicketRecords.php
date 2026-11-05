@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Services\Integrations\WhatsAppDesk;
 use App\Services\Jobs\FieldWork;
 use App\Services\Settings\SettingsStore;
 use App\Support\Access\AccessGate;
@@ -108,6 +109,14 @@ class TicketRecords
 
         $ticket->status = $status;
         $ticket->save();
+        $ticket->loadMissing('customer');
+
+        if ($ticket->customer instanceof Customer) {
+            app(WhatsAppDesk::class)->queue($ticket->customer, 'ticket', [
+                (string) $ticket->number,
+                $status,
+            ], $actor);
+        }
         $this->audit->record('ticket.status', $actor, [
             'customer_id' => $ticket->customer_id,
             'ticket_id' => $ticket->id,

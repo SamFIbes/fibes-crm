@@ -13,6 +13,8 @@ use App\Models\TicketView;
 use App\Models\User;
 use App\Services\Customers\CustomerRecords;
 use App\Services\Files\FileDesk;
+use App\Services\Integrations\WhatsAppBusinessClient;
+use App\Services\Integrations\WhatsAppDesk;
 use App\Services\Tickets\EscalationLadder;
 use App\Services\Tickets\IncidentRecords;
 use App\Services\Tickets\TicketRecords;
@@ -22,6 +24,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class TicketController extends Controller
 {
@@ -181,6 +184,9 @@ class TicketController extends Controller
             'can_move' => $records->canTouch($actor),
             'can_escalate' => $access->allows($actor, 'tickets.escalate'),
             'can_upload' => $access->allows($actor, 'attachments.upload'),
+            'can_whatsapp' => app(WhatsAppBusinessClient::class)->ready()
+                && (bool) $ticket->customer?->whatsapp_consent
+                && filled($ticket->customer?->whatsapp_e164),
         ]);
     }
 
@@ -195,6 +201,33 @@ class TicketController extends Controller
         $records->changeStatus($ticket, $data['status'], $actor, $request);
 
         return back();
+    }
+
+    public function whatsapp(Request $request, Ticket $ticket, TicketRecords $records, AccessGate $access, WhatsAppDesk $whatsapp): RedirectResponse
+    {
+        $actor = $this->actor($request, $access);
+        $this->authorizeTicket($actor, $ticket, $records);
+        $ticket->loadMissing('customer');
+        $customer = $ticket->customer;
+
+        if (! $customer instanceof Customer) {
+            return back()->withErrors(['whatsapp' => __('ui.whatsapp.off')]);
+        }
+
+        try {
+            $result = $whatsapp->queue($customer, 'ticket', [
+                (string) $ticket->number,
+                (string) $ticket->status,
+            ], $actor);
+        } catch (Throwable) {
+            return back()->withErrors(['whatsapp' => __('ui.whatsapp.failed')]);
+        }
+
+        return match ($result) {
+            'queued' => back()->with('status', __('ui.whatsapp.sent')),
+            'no_consent' => back()->withErrors(['whatsapp' => __('ui.whatsapp.no_consent')]),
+            default => back()->withErrors(['whatsapp' => __('ui.whatsapp.off')]),
+        };
     }
 
     public function escalate(Request $request, Ticket $ticket, TicketRecords $records, AccessGate $access): RedirectResponse

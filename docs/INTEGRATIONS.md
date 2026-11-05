@@ -37,11 +37,59 @@ On Stock, **Request from ERP** is disabled, with the reason, until the flag and 
 
 ## The others
 
-| System | What works now | What stays off |
-| --- | --- | --- |
-| Krypton Radius | CSV import when `krypton_import` is on. `KryptonRadiusClient` is the same mock that only logs suspend and reactivate | `FIBES_RADIUS` and `FIBES_RADIUS_API_KEY` |
-| Whish | A payment reference typed by hand. `WhishClient` only logs a charge | `FIBES_WHISH` and `FIBES_WHISH_API_KEY` |
-| Grandstream | Signed screen-pop when `FIBES_TELEPHONY_SECRET` is set. See `docs/TELEPHONY.md` | The secret, until the PBX is connected |
-| WhatsApp Business | `wa.me` links when the customer has agreed | `FIBES_WHATSAPP` and `FIBES_WHATSAPP_TOKEN` |
+Each of these stays on the behaviour below until its environment flag, its secret, its base URL where one is required, and the desk switch are all on. Test connection makes a real safe ping only in that case. Otherwise it says the connection is not configured and does not call out.
 
-Test connection on those four does not make a live call.
+| System | While it is off | When it is on |
+| --- | --- | --- |
+| Krypton Radius | CSV import when `krypton_import` is on. Suspend and reactivate only log and leave a NOC task | Create or update the Radius user from Customer 360, suspend and reactivate on the queue, and a read-only session check |
+| Whish | A payment reference typed by hand | A checkout link stored on the invoice and a pending payment. The signed webhook marks that invoice paid |
+| Grandstream | Signed screen-pop when `FIBES_TELEPHONY_SECRET` is set. Click-to-dial stays off. Abandoned calls stay an empty list | Click-to-dial through the UCM HTTP API. Abandoned calls appear only when the PBX pushes a signed event |
+| WhatsApp Business | `wa.me` links when the customer has agreed | Approved template sends for a renewal, a ticket update, and a payment reminder, still only with consent |
+
+Outbound writes are queued. Retries use the same webhook attempt count and pause as Hub ERP. Every attempt is written to `integration_attempts` and the audit log. API keys, tokens, the PBX password, and the Radius password are not stored in those rows.
+
+### Krypton Radius
+
+There is no public REST guide for the Smart Networks desk in this repo. The client assumes the paths below on `FIBES_RADIUS_URL`. A likely base address is `https://rad.smartnetworkslb.net`. Leave the URL empty until Sam has the vendor guide, then change the path variables if the real routes differ.
+
+| Purpose | Method and path | Body |
+| --- | --- | --- |
+| Safe ping | `GET /api/v1/health` | Response `{ "ok": true }` |
+| Create or update | `PUT /api/v1/users/{username}` | `username`, `password` (only when one is stored), `profile`, `static_ip`, `mac`, `nas`, `vlan`, `customer_id` |
+| Suspend | `POST /api/v1/users/{username}/suspend` | Empty JSON |
+| Reactivate | `POST /api/v1/users/{username}/reactivate` | Empty JSON |
+| Session (read, not queued) | `GET /api/v1/users/{username}/session` | `{ "online", "status", "framed_ip", "session_started_at" }` |
+
+Auth is `Authorization: Bearer` and the key in `FIBES_RADIUS_API_KEY`. `FIBES_RADIUS` must be true.
+
+A failed suspend or reactivate, after the queue gives up, opens the same NOC task as today. Set `FIBES_RADIUS_ALSO_TASK=true` to open that task even when the live call succeeds. CSV import is unchanged.
+
+### Whish
+
+Public merchant docs are thin. The client assumes:
+
+| Purpose | Method and path | Body |
+| --- | --- | --- |
+| Safe ping | `GET /api/v1/health` | Response `{ "ok": true }` |
+| Checkout | `POST /api/v1/checkouts` | `amount` (decimal string), `currency` (`USD`), `reference`, `invoice_number`, `description`, `callback_url` |
+
+The response must include `id` and an `https` `url`. Those are stored on the invoice and on a pending Whish payment. The hand-typed reference field is still on the payment form when live checkout is off.
+
+`POST /api/v1/hooks/whish` uses `X-Fibes-Timestamp` and `X-Fibes-Signature` (HMAC-SHA256 of `{timestamp}.{body}` with `FIBES_WHISH_WEBHOOK_SECRET`). An empty secret answers 503. A `payment.succeeded` event with `provider_id`, `checkout_id`, `amount`, and `currency` confirms the matching payment and posts one ledger credit. The same `provider_id` does not post again. The amount must match the payment. The API key is not in the response.
+
+### Grandstream
+
+Screen-pop is unchanged. Click-to-dial and the safe ping use the UCM HTTP API, not AMI and not a CDR poll. See `docs/TELEPHONY.md`.
+
+Abandoned calls are not invented and not polled. `POST /api/telephony/abandoned` with the same signature as screen-pop stores one row per `call_id`. The Integrations card shows that count.
+
+### WhatsApp Business
+
+Sends use the Meta Graph API:
+
+- Safe ping: `GET https://graph.facebook.com/{version}/{phone-number-id}?fields=id` with `Authorization: Bearer {FIBES_WHATSAPP_TOKEN}`
+- Template: `POST .../messages` with `type: template`
+
+Template names default to `fibes_renewal_reminder`, `fibes_ticket_update`, and `fibes_payment_reminder`. Change them to the names approved in Meta. A customer without `whatsapp_consent` is not sent a template. `wa.me` remains the link in collection tasks.
+
+`GET /api/v1/hooks/whatsapp` answers Meta’s verify challenge when `hub.mode=subscribe` and the token matches `FIBES_WHATSAPP_VERIFY_TOKEN`, or `FIBES_META_VERIFY_TOKEN` when the WhatsApp one is empty. An empty token or a mismatch answers 403. `POST` stores delivery statuses and inbound message ids. It does not reply. The POST answers 503 until `FIBES_WHATSAPP_APP_SECRET` (or `FIBES_META_APP_SECRET`) is set, and 401 when the `X-Hub-Signature-256` signature does not match.

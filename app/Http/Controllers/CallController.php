@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\DialGrandstreamCall;
+use App\Models\AbandonedCall;
 use App\Models\Customer;
 use App\Models\User;
 use App\Models\WrapUpCode;
 use App\Services\Calls\CallDesk;
 use App\Services\Customers\CustomerRecords;
+use App\Services\Integrations\GrandstreamClient;
+use App\Services\Integrations\IntegrationSettings;
 use App\Services\Leads\LeadDuplicateException;
 use App\Support\Access\AccessGate;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -17,6 +21,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use InvalidArgumentException;
+use Throwable;
 
 class CallController extends Controller
 {
@@ -41,6 +46,13 @@ class CallController extends Controller
             'can_edit' => $access->allows($actor, 'customers.edit'),
             'can_ticket' => $access->allows($actor, 'tickets.create'),
             'can_board' => $access->scopeFor($actor, 'calls.view') === 'all',
+            'can_dial' => $access->allows($actor, 'calls.log') && app(IntegrationSettings::class)->dialReady() && filled($actor->extension),
+            'abandoned' => AbandonedCall::query()->latest('id')->limit(8)->get()->map(fn (AbandonedCall $call) => [
+                'id' => $call->id,
+                'caller' => $call->caller,
+                'extension' => $call->extension,
+                'at' => ($call->abandoned_at ?? $call->created_at)?->toIso8601String(),
+            ])->values(),
         ]);
     }
 
@@ -102,6 +114,29 @@ class CallController extends Controller
         $desk->setDuty($actor, (bool) $data['on_duty'], $request);
 
         return back()->with('status', __('ui.calls.duty_saved'));
+    }
+
+    public function dial(Request $request, AccessGate $access, GrandstreamClient $pbx): RedirectResponse
+    {
+        $actor = $this->actor($request, $access);
+        abort_unless($access->allows($actor, 'calls.log'), 403);
+        $data = $request->validate(['phone' => ['required', 'string', 'max:40']]);
+
+        if (! $pbx->dialReady()) {
+            return back()->withErrors(['dial' => __('ui.calls.dial_off')]);
+        }
+
+        if (! filled($actor->extension)) {
+            return back()->withErrors(['dial' => __('ui.calls.extension_needed')]);
+        }
+
+        try {
+            DialGrandstreamCall::dispatch($actor->id, (string) $actor->extension, $data['phone']);
+        } catch (Throwable) {
+            return back()->withErrors(['dial' => __('ui.calls.dial_failed')]);
+        }
+
+        return back()->with('status', __('ui.calls.dialled'));
     }
 
     public function extension(Request $request, CallDesk $desk, AccessGate $access): RedirectResponse
