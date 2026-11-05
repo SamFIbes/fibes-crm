@@ -41,7 +41,7 @@ export function Drawer({
                             <motion.div
                                 dir={dir}
                                 data-testid="drawer"
-                                className={cn('fixed inset-y-2 end-2 z-50 flex max-w-[calc(100vw-16px)] flex-col overflow-hidden rounded-[22px] border border-line-2 bg-card shadow-pop outline-none', className)}
+                                className={cn('glass-strong fixed inset-y-2 end-2 z-50 flex max-w-[calc(100vw-16px)] flex-col overflow-hidden rounded-[22px] shadow-pop outline-none', className)}
                                 style={{ width }}
                                 initial={reduce ? false : { x: off, opacity: 0.6 }}
                                 animate={{ x: 0, opacity: 1 }}

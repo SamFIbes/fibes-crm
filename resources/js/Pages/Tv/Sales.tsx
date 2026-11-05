@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import { Nebula } from '@/components/shell/Nebula';
 import { useI18n } from '@/lib/i18n';
 
 type Deal = { id: number; label: string; amount: string; owner: string; big: boolean; fanfare: boolean };
@@ -59,7 +60,8 @@ export default function TvSales({ feed: initial, token }: { feed: Feed; token: s
     return (
         <div data-testid="tv-board">
             <Head title={t('performance.tv')} />
-            <main className="min-h-screen bg-background px-4 py-6 text-foreground">
+            <Nebula />
+            <main className="relative z-10 min-h-screen px-4 py-6 text-foreground">
                 <div className="mx-auto flex max-w-5xl flex-wrap items-end justify-between gap-3">
                     <div>
                         <p className="text-sm text-muted">FIBES</p>

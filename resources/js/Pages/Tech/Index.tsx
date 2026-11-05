@@ -80,8 +80,10 @@ export default function TechIndex({ jobs, failures, van = [], can_collect = fals
         <AppShell>
             <Head title={t('tech_app.title')} />
             <div className="mx-auto max-w-lg" data-testid="tech-app">
-                <h1 className="text-3xl font-semibold tracking-tight">{t('tech_app.title')}</h1>
+                <div className="card px-4 py-4">
+                <h1 className="text-2xl font-semibold tracking-tight">{t('tech_app.title')}</h1>
                 <p className="mt-1 text-sm text-muted">{t('tech_app.subtitle')}</p>
+                </div>
                 {queue > 0 ? (
                     <button type="button" data-testid="sync-queue" className="mt-3 w-full rounded-tile bg-warn-bg px-3 py-2 text-sm" onClick={() => flushQueue(csrfToken()).then((left) => { setQueue(left.length); if (left.length === 0) router.reload(); })}>
                         {t('tech_app.queued', { count: queue })}

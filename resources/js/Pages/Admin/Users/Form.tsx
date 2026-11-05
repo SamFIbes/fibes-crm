@@ -66,8 +66,8 @@ export default function UserForm({
         <AppShell>
             <Head title={account ? t('admin.edit_user') : t('admin.add_user')} />
             <form onSubmit={submit} className="mx-auto max-w-3xl space-y-6">
-                <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">{account ? t('admin.edit_user') : t('admin.add_user')}</h1>
+                <div className="card px-5 py-4">
+                    <h1 className="text-2xl font-semibold tracking-tight">{account ? t('admin.edit_user') : t('admin.add_user')}</h1>
                     <p className="mt-2 text-sm text-muted-foreground">{t('admin.user_form_help')}</p>
                 </div>
                 <div className="card space-y-4 p-5">

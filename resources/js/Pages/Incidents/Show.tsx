@@ -49,6 +49,8 @@ export default function IncidentShow({ incident }: { incident: Incident }) {
         <AppShell>
             <Head title={incident.title} />
             <div data-testid="incident-page">
+                <div className="card flex flex-wrap items-start justify-between gap-3 px-5 py-4">
+                <div>
                 <p className="text-xs text-faint"><Link href="/incidents">{t('incidents.title')}</Link> · <span dir="ltr">{incident.number}</span></p>
                 <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -58,7 +60,9 @@ export default function IncidentShow({ incident }: { incident: Incident }) {
                     <Badge tone={incident.status === 'open' ? 'bad' : 'good'}>{incident.status === 'open' ? t('incidents.open') : t('incidents.resolved_status')}</Badge>
                 </div>
                 {incident.summary ? <p className="mt-3 text-sm">{incident.summary}</p> : null}
-                {page.props.flash.status ? <p className="mt-3 rounded-tile bg-card px-3 py-2 text-sm ring-1 ring-line">{page.props.flash.status}</p> : null}
+                {page.props.flash.status ? <p className="mt-3 rounded-tile bg-[var(--field-bg)] px-3 py-2 text-sm ring-1 ring-line">{page.props.flash.status}</p> : null}
+                </div>
+                </div>
                 <section className="card mt-4 p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <h2 className="text-sm font-semibold">{t('incidents.tickets')}</h2>

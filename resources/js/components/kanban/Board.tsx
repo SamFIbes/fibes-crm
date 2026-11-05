@@ -81,7 +81,7 @@ function Column<T extends KanbanItem>({
     const { setNodeRef, isOver } = useDroppable({ id: `col:${column.id}` });
 
     return (
-        <section className={cn('flex w-[272px] shrink-0 flex-col rounded-card bg-card-2/80 p-2 ring-1 ring-line', isOver && 'ring-accent')} data-column={column.id}>
+        <section className={cn('card flex w-[272px] shrink-0 flex-col p-2', isOver && 'ring-2 ring-aqua')} data-column={column.id}>
             <header className="flex items-center justify-between px-2 py-1.5">
                 <h2 className="text-sm font-semibold">{column.title}</h2>
                 <span className="text-2xs font-semibold text-faint tabular">{column.items.length}</span>
@@ -102,7 +102,7 @@ function Card({ id, children }: { id: string; children: ReactNode }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
 
     return (
-        <div ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform) }} className={cn('cursor-grab rounded-tile bg-card p-3 shadow-card ring-1 ring-line', isDragging && 'opacity-40')} {...listeners} {...attributes}>
+        <div ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform) }} className={cn('cursor-grab rounded-tile border border-[var(--glass-border)] bg-[var(--field-bg)] p-3 shadow-[var(--glow-aqua)]', isDragging && 'opacity-40')} {...listeners} {...attributes}>
             {children}
         </div>
     );
