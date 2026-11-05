@@ -90,7 +90,7 @@ function Event({ item, renderItem }: { item: WeekItem; renderItem?: (item: WeekI
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: item.id });
 
     return (
-        <div ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform) }} className={cn('cursor-grab rounded-[10px] border border-[var(--glass-border)] bg-[var(--field-bg)] px-2 py-1.5 text-sm', isDragging && 'opacity-40')} {...listeners} {...attributes}>
+        <div ref={setNodeRef} style={{ transform: CSS.Translate.toString(transform) }} className={cn('cursor-grab rounded-[10px] bg-card px-2 py-1.5 text-sm shadow-card ring-1 ring-line', isDragging && 'opacity-40')} {...listeners} {...attributes}>
             {renderItem ? renderItem(item) : item.title}
         </div>
     );

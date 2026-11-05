@@ -50,16 +50,14 @@ export default function Security({
         <AppShell>
             <Head title={t('security.title')} />
             <div className="mx-auto max-w-3xl">
-                <div className="card px-5 py-4">
-                <h1 className="text-2xl font-semibold tracking-tight">{t('security.title')}</h1>
+                <h1 className="text-3xl font-semibold tracking-tight">{t('security.title')}</h1>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{t('security.subtitle')}</p>
-                </div>
                 {security.two_factor_grace_days === 0 ? (
                     <p className="mt-4 rounded-lg bg-secondary px-3 py-2 text-sm text-foreground">{t('security.enroll_body')}</p>
                 ) : null}
 
                 {flash.recovery_codes && flash.recovery_codes.length > 0 ? (
-                    <section className="card mt-6 p-5">
+                    <section className="mt-6 rounded-2xl border border-border bg-card p-5">
                         <h2 className="text-sm font-semibold">{t('security.recovery_title')}</h2>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">{t('security.recovery_body')}</p>
                         <ul className="mt-4 grid gap-2 sm:grid-cols-2" dir="ltr">
@@ -72,7 +70,7 @@ export default function Security({
                     </section>
                 ) : null}
 
-                <section className="mt-6 card p-5">
+                <section className="mt-6 rounded-2xl border border-border bg-card p-5">
                     <h2 className="text-sm font-semibold">{t('security.password_heading')}</h2>
                     <form onSubmit={updatePassword} className="mt-4 space-y-4">
                         <Field id="current_password" label={t('security.current_password')} error={passwordForm.errors.current_password}>
@@ -114,7 +112,7 @@ export default function Security({
                     </form>
                 </section>
 
-                <section className="mt-4 card p-5">
+                <section className="mt-4 rounded-2xl border border-border bg-card p-5">
                     <h2 className="text-sm font-semibold">{t('security.two_factor_heading')}</h2>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                         {enabled ? t('security.two_factor_on') : pending ? t('security.two_factor_pending') : t('security.two_factor_off')}
