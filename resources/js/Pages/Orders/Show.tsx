@@ -49,7 +49,6 @@ export default function OrderShow({
         <AppShell>
             <Head title={order.number ?? t('orders.title')} />
             <div data-testid="order-tracker">
-                <div className="card px-5 py-4">
                 <p className="text-sm text-muted"><Link href="/orders">{t('orders.title')}</Link></p>
                 <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
                     <div>
@@ -64,7 +63,7 @@ export default function OrderShow({
                 {order.whatsapp && !page.props.flash.link ? <a className="mt-2 inline-flex text-sm underline" dir="ltr" href={order.whatsapp}>{t('orders.whatsapp')}</a> : null}
                 <ol className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" data-testid="order-steps">
                     {order.steps.map((step) => (
-                        <li key={step.key} className={step.current ? 'rail-active rounded-tile px-3 py-2 text-sm font-semibold' : step.done ? 'rounded-tile border border-mint/40 bg-[var(--glass)] px-3 py-2 text-sm' : 'rounded-tile border border-[var(--glass-border)] bg-[var(--glass)] px-3 py-2 text-sm text-muted'}>
+                        <li key={step.key} className={step.current ? 'rounded-tile bg-navy px-3 py-2 text-sm text-white' : step.done ? 'rounded-tile bg-card px-3 py-2 text-sm ring-1 ring-mint' : 'rounded-tile bg-card px-3 py-2 text-sm text-muted ring-1 ring-line'}>
                             {t(`orders.status_${step.key}`)}
                         </li>
                     ))}
@@ -79,7 +78,6 @@ export default function OrderShow({
                     {order.jobs.map((job) => (
                         <p key={job.id} className="text-sm" data-testid="order-job"><span dir="ltr">{job.number}</span> · {job.type} · {job.status}</p>
                     ))}
-                </div>
                 </div>
                 {can_move && order.next.length > 0 ? (
                     <form className="card mt-5 grid gap-3 p-4" onSubmit={(event) => { event.preventDefault(); form.post(`/orders/${order.id}/transition`); }}>

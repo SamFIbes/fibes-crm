@@ -176,11 +176,11 @@ export function CommandPalette() {
                     setQuery('');
                     setOpen(true);
                 }}
-                className="inline-flex h-11 w-full max-w-xl items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--glass)] px-3 text-sm text-muted shadow-[var(--shadow-glass)] backdrop-blur-md transition-[border-color,box-shadow] duration-200 hover:border-sky/50"
+                className="inline-flex h-10 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors duration-200 hover:border-ring/50"
             >
-                <kbd className="hidden rounded-md border border-line-2 bg-well px-1.5 py-0.5 text-[10px] font-semibold text-text sm:inline">{shortcut}</kbd>
-                <Search className="h-4 w-4 shrink-0 text-aqua" aria-hidden="true" />
+                <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span className="flex-1 truncate text-start">{t('command.placeholder')}</span>
+                <kbd className="hidden rounded border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium sm:inline">{shortcut}</kbd>
             </button>
             <CommandDialog
                 open={open}

@@ -12,7 +12,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, ComponentPropsWith
                 ref={ref}
                 sideOffset={sideOffset}
                 className={cn(
-                    'glass-strong z-50 min-w-56 p-1 text-popover-foreground duration-200',
+                    'z-50 min-w-56 rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg duration-200',
                     className,
                 )}
                 {...props}

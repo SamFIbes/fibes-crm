@@ -1,6 +1,5 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { FormEvent } from 'react';
-import { Nebula } from '@/components/shell/Nebula';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import type { SharedProps } from '@/types';
@@ -16,9 +15,7 @@ export default function CsatShow({ token, score, number }: { token: string; scor
     };
 
     return (
-        <main className="relative flex min-h-dvh items-center justify-center px-4" data-testid="csat-page">
-            <Nebula />
-            <div className="auth-card relative z-10 w-full max-w-md px-6 py-8">
+        <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4" data-testid="csat-page">
             <Head title={t('jobs.csat')} />
             <h1 className="text-3xl font-semibold">{t('jobs.csat')}</h1>
             <p className="mt-2 text-sm text-muted" dir="ltr">{number}</p>
@@ -30,9 +27,8 @@ export default function CsatShow({ token, score, number }: { token: string; scor
                     ))}
                 </div>
                 <textarea aria-label={t('jobs.csat_comment')} className="min-h-24 rounded-ctl border border-input bg-card p-3 text-sm" value={form.data.comment} onChange={(event) => form.setData('comment', event.target.value)} />
-                <Button type="submit" variant="gradient" className="h-11 rounded-2xl" disabled={!form.data.score}>{t('jobs.csat_send')}</Button>
+                <Button type="submit" disabled={!form.data.score}>{t('jobs.csat_send')}</Button>
             </form>
-            </div>
         </main>
     );
 }

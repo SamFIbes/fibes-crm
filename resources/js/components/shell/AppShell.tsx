@@ -6,7 +6,6 @@ import { page as pageMotion, prefersReducedMotion } from '@/lib/motion';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { SharedProps } from '@/types';
-import { Nebula } from './Nebula';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 
@@ -53,13 +52,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
 
     return (
-        <div className="relative min-h-dvh">
-            <Nebula />
+        <div className="min-h-dvh">
             <a href="#content" className="sr-only focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:z-[80] focus:rounded-lg focus:bg-card focus:px-3 focus:py-2">
                 {t('a11y.skip')}
             </a>
             <Sidebar collapsed={collapsed} mobileOpen={mobileOpen} onToggle={toggle} onClose={() => setMobileOpen(false)} />
-            <div className={cn('relative z-10 transition-[padding] duration-300', collapsed ? 'lg:ps-[80px]' : 'lg:ps-[248px]')}>
+            <div className={cn('transition-[padding] duration-300', collapsed ? 'lg:ps-[96px]' : 'lg:ps-[276px]')}>
                 <div className="mx-auto max-w-[1640px] px-4 pb-10 sm:px-6">
                     <TopBar onOpenMenu={() => setMobileOpen(true)} />
                     {inertia.props.auth.view_as ? (

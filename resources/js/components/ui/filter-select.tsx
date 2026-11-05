@@ -33,14 +33,14 @@ export function FilterSelect({
                 type="button"
                 aria-haspopup="listbox"
                 aria-expanded={open}
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--glass)] px-3 text-sm backdrop-blur-md"
+                className="inline-flex h-10 items-center gap-2 rounded-ctl border border-line bg-card px-3 text-sm shadow-card"
                 onClick={() => setOpen((currentOpen) => !currentOpen)}
             >
                 <span className="text-faint">{label}</span>
                 <span className="font-semibold">{current?.label}</span>
             </button>
             {open ? (
-                <ul role="listbox" className="glass-strong absolute z-30 mt-1 max-h-64 min-w-52 overflow-auto p-1">
+                <ul role="listbox" className="absolute z-30 mt-1 max-h-64 min-w-52 overflow-auto rounded-tile border border-line bg-card p-1 shadow-pop">
                     {options.map((option) => (
                         <li key={option.value || 'any'}>
                             <button

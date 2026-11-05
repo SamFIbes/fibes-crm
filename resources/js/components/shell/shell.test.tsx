@@ -47,7 +47,6 @@ const copy: SharedProps['translations'] = {
         open_menu: 'Open menu',
     },
     a11y: { main: 'Main', skip: 'Skip' },
-    shell: { desk: 'ISP CRM', pulse: 'Network pulse', pulse_quiet: 'No live network feed on this desk' },
     command: {
         placeholder: 'Search actions',
         empty: 'No matching actions',
