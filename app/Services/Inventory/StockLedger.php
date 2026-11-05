@@ -161,7 +161,7 @@ class StockLedger
                 $serial->save();
             }
 
-            $this->move($item, $quantity, 'issue', $from->id, null, $serial?->id, $job->id, null, $actor, null, null);
+            $this->move($item, $quantity, 'issue', $from->id, null, $serial?->id, $job->id, null, $actor, null, null, $job->customer_id ? (int) $job->customer_id : null);
             StockReservation::query()
                 ->where('job_id', $job->id)
                 ->where('item_id', $item->id)
@@ -186,6 +186,63 @@ class StockLedger
                 'item_id' => $item->id,
                 'job_id' => $job->id,
                 'customer_id' => $job->customer_id,
+                'quantity' => $quantity,
+                'serial' => $serial?->serial,
+            ], $request);
+            $this->watchLevel($item);
+        });
+    }
+
+    public function issueTo(
+        StockItem $item,
+        StockLocation $from,
+        string $quantity,
+        ?StockSerial $serial,
+        User $actor,
+        ?Request $request,
+        ?int $customerId,
+        ?int $networkNodeId,
+        ?int $jobId,
+        ?int $expenseId,
+    ): void {
+        $quantity = $this->normalize($item, $quantity, $serial ? [['serial' => $serial->serial]] : []);
+        $this->assertAvailable($item, $from, $quantity, $serial);
+
+        if ($customerId === null && $jobId !== null) {
+            $linked = Job::query()->whereKey($jobId)->value('customer_id');
+            $customerId = $linked !== null ? (int) $linked : null;
+        }
+
+        DB::transaction(function () use ($item, $from, $quantity, $serial, $actor, $request, $customerId, $networkNodeId, $jobId, $expenseId): void {
+            if ($serial instanceof StockSerial) {
+                $serial->status = 'reserved';
+
+                if ($jobId !== null) {
+                    $serial->job_id = $jobId;
+                }
+
+                $serial->save();
+            }
+
+            $this->move($item, $quantity, 'issue', $from->id, null, $serial?->id, $jobId, null, $actor, null, null, $customerId, $networkNodeId, $expenseId);
+
+            if ($jobId !== null) {
+                $job = Job::query()->find($jobId);
+
+                if ($job instanceof Job) {
+                    $note = trim((string) $job->materials);
+                    $line = $item->name_en.' '.$quantity.($serial ? ' '.$serial->serial : '');
+                    $job->materials = $note === '' ? $line : $note."\n".$line;
+                    $job->save();
+                }
+            }
+
+            $this->audit->record('stock.issued', $actor, [
+                'item_id' => $item->id,
+                'job_id' => $jobId,
+                'customer_id' => $customerId,
+                'network_node_id' => $networkNodeId,
+                'expense_id' => $expenseId,
                 'quantity' => $quantity,
                 'serial' => $serial?->serial,
             ], $request);
@@ -494,6 +551,9 @@ class StockLedger
         User $actor,
         ?int $approvedBy,
         ?string $reason,
+        ?int $customerId = null,
+        ?int $networkNodeId = null,
+        ?int $expenseId = null,
     ): void {
         StockMovement::query()->create([
             'item_id' => $item->id,
@@ -505,6 +565,9 @@ class StockLedger
             'kind' => $kind,
             'reason' => $reason,
             'job_id' => $jobId,
+            'customer_id' => $customerId,
+            'network_node_id' => $networkNodeId,
+            'expense_id' => $expenseId,
             'customer_service_id' => $serviceId,
             'actor_id' => $actor->id,
             'approved_by' => $approvedBy,

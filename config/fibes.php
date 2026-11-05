@@ -211,6 +211,23 @@ return [
 
     'telephony' => [
         'secret' => env('FIBES_TELEPHONY_SECRET'),
+        'url' => env('FIBES_TELEPHONY_URL', ''),
+    ],
+
+    /*
+    | Hub ERP is Frappe / ERPNext at erp.thehubholding.com.
+    | The live company is Smart Network (LBP, Lebanon). Stock requests
+    | are draft Material Requests. The flag stays off until an API key
+    | exists — the Hub user does not have API Access yet.
+    */
+
+    'erpnext' => [
+        'enabled' => (bool) env('FIBES_ERPNEXT_ENABLED', false),
+        'url' => env('FIBES_ERPNEXT_URL', 'https://erp.thehubholding.com'),
+        'api_key' => env('FIBES_ERPNEXT_API_KEY'),
+        'api_secret' => env('FIBES_ERPNEXT_API_SECRET'),
+        'webhook_secret' => env('FIBES_ERPNEXT_WEBHOOK_SECRET'),
+        'company' => env('FIBES_ERPNEXT_COMPANY', 'Smart Network'),
     ],
 
     'attachments' => [
@@ -259,10 +276,20 @@ return [
 
     'radius' => [
         'enabled' => (bool) env('FIBES_RADIUS', false),
+        'url' => env('FIBES_RADIUS_URL', ''),
+        'api_key' => env('FIBES_RADIUS_API_KEY'),
     ],
 
     'whish' => [
         'enabled' => (bool) env('FIBES_WHISH', false),
+        'url' => env('FIBES_WHISH_URL', ''),
+        'api_key' => env('FIBES_WHISH_API_KEY'),
+    ],
+
+    'whatsapp' => [
+        'enabled' => (bool) env('FIBES_WHATSAPP', false),
+        'token' => env('FIBES_WHATSAPP_TOKEN'),
+        'phone_number_id' => env('FIBES_WHATSAPP_PHONE_ID', ''),
     ],
 
     'documents' => [

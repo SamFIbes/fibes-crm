@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AutomationController;
+use App\Http\Controllers\ErpNextWebhookController;
 use App\Http\Controllers\LeadWebhookController;
 use App\Http\Controllers\PerformanceController;
 use App\Http\Controllers\TelephonyController;
@@ -14,6 +15,10 @@ Route::post('/v1/hooks/web-form', [LeadWebhookController::class, 'webForm'])
     ->name('hooks.web-form');
 Route::get('/v1/hooks/meta', [LeadWebhookController::class, 'metaVerify'])->name('hooks.meta.verify');
 Route::post('/v1/hooks/meta', [LeadWebhookController::class, 'meta'])->name('hooks.meta');
+
+Route::post('/v1/hooks/erpnext', ErpNextWebhookController::class)
+    ->middleware(['throttle:60,1', 'erpnext.signature'])
+    ->name('hooks.erpnext');
 
 Route::post('/telephony/incoming', [TelephonyController::class, 'incoming'])
     ->middleware(['throttle:60,1', 'telephony.signature'])

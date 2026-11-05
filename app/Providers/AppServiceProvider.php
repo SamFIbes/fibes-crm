@@ -16,6 +16,12 @@ use App\Services\Collections\RadiusDriver;
 use App\Services\Files\ClamAvScanner;
 use App\Services\Files\FileScanner;
 use App\Services\Files\NullFileScanner;
+use App\Services\Integrations\GrandstreamClient;
+use App\Services\Integrations\KryptonRadiusClient;
+use App\Services\Integrations\StubGrandstreamClient;
+use App\Services\Integrations\StubWhatsAppBusinessClient;
+use App\Services\Integrations\WhatsAppBusinessClient;
+use App\Services\Integrations\WhishClient;
 use App\Services\Opportunities\CheckedCoverageGate;
 use App\Services\Opportunities\CoverageGate;
 use App\Services\Opportunities\ManagerOverrideWonGate;
@@ -53,7 +59,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(SmsDriver::class, LogSms::class);
         $this->app->bind(BillingGate::class, LedgerBillingGate::class);
         $this->app->bind(WhishDriver::class, LogWhishDriver::class);
+        $this->app->bind(WhishClient::class, LogWhishDriver::class);
         $this->app->bind(RadiusDriver::class, MockRadiusDriver::class);
+        $this->app->bind(KryptonRadiusClient::class, MockRadiusDriver::class);
+        $this->app->bind(GrandstreamClient::class, StubGrandstreamClient::class);
+        $this->app->bind(WhatsAppBusinessClient::class, StubWhatsAppBusinessClient::class);
     }
 
     public function boot(): void

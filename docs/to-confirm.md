@@ -83,3 +83,5 @@ The day’s dollar rate is not in this list. Finance records it on Exchange rate
 | Minutes before cash or a signature asks for the password again | 15 | Settings → Figures still to confirm |
 
 Islamic holiday dates stay on the Holidays section of Settings and stay marked “to confirm” until an admin confirms the moon-sighting date.
+
+Hub ERP, Krypton, Whish, Grandstream, and WhatsApp are not figures in this list. Their switches live in the environment and on Settings → Integrations. The live ERP company, Smart Network, was confirmed on 5 Nov 2026 and is not a figure still to confirm.
