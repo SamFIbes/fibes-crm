@@ -23,7 +23,7 @@ export default function PasswordRequired() {
     };
 
     return (
-        <GuestLayout>
+        <GuestLayout mode="auth">
             <Head title={t('security.password_required_title')} />
             <h1 className="text-2xl font-semibold tracking-tight">{t('security.password_required_title')}</h1>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{t('security.password_required_body')}</p>
@@ -61,7 +61,7 @@ export default function PasswordRequired() {
                         required
                     />
                 </Field>
-                <Button type="submit" className="w-full" disabled={form.processing}>
+                <Button type="submit" variant="gradient" className="h-11 w-full rounded-2xl" disabled={form.processing}>
                     {t('security.password_required_submit')}
                 </Button>
             </form>

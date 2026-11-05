@@ -16,7 +16,7 @@ export default function ForgotPassword() {
     };
 
     return (
-        <GuestLayout>
+        <GuestLayout mode="auth">
             <Head title={t('auth.forgot_title')} />
             <h1 className="text-2xl font-semibold tracking-tight">{t('auth.forgot_title')}</h1>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{t('auth.forgot_subtitle')}</p>
@@ -32,7 +32,7 @@ export default function ForgotPassword() {
                         required
                     />
                 </Field>
-                <Button type="submit" className="w-full" disabled={form.processing}>
+                <Button type="submit" variant="gradient" className="h-11 w-full rounded-2xl" disabled={form.processing}>
                     {t('auth.send_link')}
                 </Button>
             </form>

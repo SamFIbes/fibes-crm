@@ -14,7 +14,7 @@ export function LanguageSwitch() {
     };
 
     return (
-        <div role="group" aria-label={t('language.switch')} className="inline-flex rounded-lg border border-border bg-card p-0.5">
+        <div role="group" aria-label={t('language.switch')} className="inline-flex rounded-full border border-[var(--glass-border)] bg-[var(--glass)] p-0.5 backdrop-blur-md">
             {(['en', 'ar'] as const).map((code) => (
                 <button
                     key={code}

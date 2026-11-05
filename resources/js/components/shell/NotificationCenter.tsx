@@ -25,14 +25,14 @@ export function NotificationCenter() {
                 data-testid="notifications"
                 aria-expanded={open}
                 aria-label={t('notifications.open')}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-foreground hover:bg-secondary"
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--glass-border)] bg-[var(--glass)] text-foreground backdrop-blur-md hover:border-sky/40"
                 onClick={() => setOpen((value) => !value)}
             >
                 <Bell className="h-4 w-4" />
                 {notices.unread > 0 ? <span className="absolute end-1.5 top-1.5 size-2 rounded-full bg-bad" /> : null}
             </button>
             {open ? (
-                <div className="absolute end-0 z-40 mt-2 w-80 rounded-card border border-line bg-card p-3 shadow-pop" data-testid="notification-panel">
+                <div className="glass absolute end-0 z-40 mt-2 w-80 p-3" data-testid="notification-panel">
                     <div className="mb-2 flex items-center justify-between gap-2">
                         <p className="text-sm font-semibold">{t('notifications.title')}</p>
                         <button type="button" className="text-xs font-semibold text-accent-ink" onClick={() => router.post('/notifications/read')}>
