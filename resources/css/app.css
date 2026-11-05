@@ -68,7 +68,6 @@
   --shadow-card: var(--shadow);
   --shadow-lift: var(--shadow-lift);
   --shadow-pop: var(--shadow-pop);
-  --shadow-glass: var(--shadow-glass);
   --text-2xs: var(--fs-2xs);
   --text-xs: var(--fs-xs);
   --text-sm: var(--fs-sm);
@@ -112,117 +111,11 @@
 }
 
 @layer components {
-  .card,
-  .glass {
-    background: var(--glass);
-    border-radius: var(--r-glass);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-glass);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  }
-  .glass-strong,
-  .auth-card {
-    background: var(--glass-strong);
-    border-radius: 28px;
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-glass), 0 0 80px -28px rgb(120 208 224 / 0.45);
-    backdrop-filter: blur(28px) saturate(1.55);
-    -webkit-backdrop-filter: blur(28px) saturate(1.55);
-  }
-  .glass-field {
-    border-radius: 16px;
-    border: 1px solid var(--glass-border);
-    background: var(--field-bg);
-    padding: 10px 12px 8px;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
-    transition: border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
-  }
-  .glass-field:focus-within {
-    border-color: rgb(120 208 224 / 0.75);
-    box-shadow: 0 0 0 3px rgb(120 208 224 / 0.18), var(--glow-aqua);
-  }
-  .glass-field :focus-visible { outline: none; }
+  .card { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); border: 1px solid var(--line); }
   .text-gradient { background: var(--brand-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .bg-brand-gradient { background: var(--brand-gradient); }
   [dir='rtl'] .flip-rtl { transform: scaleX(-1); }
   [data-brand] { direction: ltr; }
-
-  .nebula {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .nebula-dust {
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(rgb(255 255 255 / 0.28) 0.7px, transparent 0.7px);
-    background-size: 22px 22px;
-    opacity: 0.16;
-    mask-image: radial-gradient(ellipse at 50% 42%, #000 10%, transparent 72%);
-  }
-  .nebula-orb {
-    position: absolute;
-    border-radius: 999px;
-    filter: blur(18px);
-    opacity: 0.72;
-    animation: nebula-drift var(--dur-drift) ease-in-out infinite;
-  }
-  .nebula-orb-mint {
-    width: min(52vw, 640px);
-    height: min(52vw, 640px);
-    left: -8%;
-    top: 16%;
-    background: radial-gradient(circle, rgb(102 196 143 / 0.78), rgb(102 196 143 / 0) 68%);
-  }
-  .nebula-orb-aqua {
-    width: min(48vw, 600px);
-    height: min(48vw, 600px);
-    right: -10%;
-    bottom: -12%;
-    background: radial-gradient(circle, rgb(120 208 224 / 0.72), rgb(120 208 224 / 0) 68%);
-    animation-delay: -8s;
-  }
-  .nebula-orb-deep {
-    width: min(30vw, 380px);
-    height: min(30vw, 380px);
-    left: 40%;
-    top: -12%;
-    background: radial-gradient(circle, rgb(117 205 200 / 0.4), transparent 70%);
-    animation-delay: -14s;
-  }
-  html:not(.dark) .nebula-orb { opacity: 0.28; }
-  .pulse-live {
-    animation: pulse-ring var(--dur-pulse) ease-out infinite;
-  }
-  .kpi-orb {
-    position: absolute;
-    inset-inline-end: -28px;
-    top: -32px;
-    width: 132px;
-    height: 132px;
-    border-radius: 999px;
-    filter: blur(6px);
-    opacity: 0.7;
-    pointer-events: none;
-  }
-  .kpi-orb[data-tone='0'] { background: radial-gradient(circle, rgb(102 196 143 / 0.75), transparent 70%); }
-  .kpi-orb[data-tone='1'] { background: radial-gradient(circle, rgb(120 208 224 / 0.75), transparent 70%); }
-  .kpi-orb[data-tone='2'] { background: radial-gradient(circle, rgb(143 165 255 / 0.7), transparent 70%); }
-  .kpi-orb[data-tone='3'] { background: radial-gradient(circle, rgb(244 160 196 / 0.6), transparent 70%); }
-  .rail-active { background: var(--brand-gradient); color: var(--brand-navy); box-shadow: var(--glow-mint); }
-}
-
-@keyframes nebula-drift {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(3%, -4%, 0) scale(1.08); }
-}
-
-@keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgb(102 196 143 / 0.55); }
-  100% { box-shadow: 0 0 0 8px rgb(102 196 143 / 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {

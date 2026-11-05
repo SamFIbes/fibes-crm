@@ -21,7 +21,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
     };
 
     return (
-        <GuestLayout mode="auth">
+        <GuestLayout>
             <Head title={t('auth.reset_title')} />
             <h1 className="text-2xl font-semibold tracking-tight">{t('auth.reset_title')}</h1>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{t('auth.reset_subtitle')}</p>
@@ -51,7 +51,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                         required
                     />
                 </Field>
-                <Button type="submit" variant="gradient" className="h-11 w-full rounded-2xl" disabled={form.processing}>
+                <Button type="submit" className="w-full" disabled={form.processing}>
                     {t('auth.reset_submit')}
                 </Button>
             </form>

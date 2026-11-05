@@ -15,7 +15,6 @@ import { PlanPicker } from '@/components/catalog/PlanPicker';
 import { useI18n } from '@/lib/i18n';
 import type { CatalogPlan } from '@/lib/catalog';
 import type { SharedProps } from '@/types';
-import { initials } from '@/lib/utils';
 import { Users } from 'lucide-react';
 
 type AreaOption = { id: number; name_en: string; name_ar: string };
@@ -118,19 +117,12 @@ export default function CustomersIndex({
         {
             header: t('customers.name_en'),
             id: 'name',
-            cell: ({ row }) => {
-                const person = locale === 'ar' ? row.original.name_ar : row.original.name_en;
-
-                return (
-                    <div className="flex items-center gap-2">
-                        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-gradient text-2xs font-bold text-navy">{initials(person)}</span>
-                        <div>
-                            <div className="font-semibold">{person}</div>
-                            <div className="text-xs text-muted" dir="ltr">{row.original.phones[0] ?? t('customers.hidden')}</div>
-                        </div>
-                    </div>
-                );
-            },
+            cell: ({ row }) => (
+                <div>
+                    <div className="font-semibold">{locale === 'ar' ? row.original.name_ar : row.original.name_en}</div>
+                    <div className="text-xs text-muted" dir="ltr">{row.original.phones[0] ?? t('customers.hidden')}</div>
+                </div>
+            ),
         },
         {
             header: t('customers.area'),
@@ -169,7 +161,7 @@ export default function CustomersIndex({
             {page.props.flash.status ? <p className="mb-4 rounded-tile bg-card px-3 py-2 text-sm ring-1 ring-line">{page.props.flash.status}</p> : null}
             {page.props.flash.link ? <p className="mb-4 text-sm" dir="ltr"><a className="font-semibold text-accent-ink" href={page.props.flash.link}>{page.props.flash.link}</a></p> : null}
             <p className="mb-3 text-xs text-faint">{t('customers.shortcut')}</p>
-            <div className="card mb-4 flex flex-wrap items-end gap-2 p-3" data-testid="customers-page">
+            <div className="mb-4 flex flex-wrap items-end gap-2" data-testid="customers-page">
                 <Input id="customer-search" data-testid="customer-search" className="max-w-xs" placeholder={t('customers.search')} defaultValue={filters.q} onKeyDown={(event) => { if (event.key === 'Enter') apply({ ...filters, q: (event.target as HTMLInputElement).value }); }} />
                 <FilterSelect label={t('customers.status')} value={filters.status} onChange={(status) => apply({ ...filters, status })} options={[{ value: '', label: t('filters.any') }, ...statuses.map((status) => ({ value: status, label: t(`customers.${status}`) }))]} />
                 <FilterSelect label={t('customers.area')} value={String(filters.area_id ?? '')} onChange={(area) => apply({ ...filters, area_id: area ? Number(area) : null })} options={[{ value: '', label: t('filters.any') }, ...areas.map((area) => ({ value: String(area.id), label: locale === 'ar' ? area.name_ar : area.name_en }))]} />
@@ -179,7 +171,7 @@ export default function CustomersIndex({
             <div className="mb-4 flex flex-wrap items-center gap-2">
                 <span className="text-xs font-semibold uppercase tracking-[0.12em] text-faint">{t('customers.saved_views')}</span>
                 {views.map((view) => (
-                    <button key={view.id} type="button" className="rounded-full border border-[var(--glass-border)] bg-[var(--glass)] px-3 py-1 text-sm" onClick={() => apply(view.filters)}>{view.name}</button>
+                    <button key={view.id} type="button" className="rounded-full bg-card px-3 py-1 text-sm ring-1 ring-line" onClick={() => apply(view.filters)}>{view.name}</button>
                 ))}
                 <Input className="h-8 max-w-[10rem]" placeholder={t('customers.view_name')} value={viewName} onChange={(event) => setViewName(event.target.value)} />
                 <Button type="button" variant="outline" size="sm" onClick={() => viewName && router.post('/customer-views', { name: viewName, filters }, { preserveScroll: true, onSuccess: () => setViewName('') })}>{t('customers.save_view')}</Button>

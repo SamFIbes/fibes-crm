@@ -1,5 +1,5 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { FormEvent, useState, type ReactNode } from 'react';
+import { FormEvent, useState } from 'react';
 import { Field } from '@/components/form/Field';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { AppShell } from '@/components/shell/AppShell';
@@ -12,8 +12,7 @@ import { QuickTask } from '@/components/tasks/QuickTask';
 import { CoverageMap } from '@/components/maps/CoverageMap';
 import { PlanPicker } from '@/components/catalog/PlanPicker';
 import type { CatalogPlan } from '@/lib/catalog';
-import { initials } from '@/lib/utils';
-import { FileText, Mail, MapPin, Phone, Receipt, StickyNote, Ticket, Wifi } from 'lucide-react';
+import { Receipt, Ticket } from 'lucide-react';
 
 type Area = { name_en: string; name_ar: string; district_en: string; district_ar: string; governorate_en: string; governorate_ar: string } | null;
 type Service = {
@@ -139,16 +138,13 @@ export default function CustomerShow({
         <AppShell>
             <Head title={name} />
             <div data-testid="customer-360">
-                <div className="card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                    <div className="min-w-0">
-                        <p className="text-xs text-faint"><Link href="/customers">{t('customers.title')}</Link> · {t('customers.screen')} · <span dir="ltr">{customer.account_no}</span></p>
-                        <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight">{name}</h1>
+                <p className="text-xs text-faint"><Link href="/customers">{t('customers.title')}</Link> · <span dir="ltr">{customer.account_no}</span></p>
+                <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                        <h1 className="text-display font-semibold tracking-tight">{name}</h1>
+                        <p className="mt-1 text-sm text-muted">{customer.type === 'business' ? customer.company_name : t(`customers.${customer.type}`)}{area ? ` · ${area}` : ''}</p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Badge tone={customer.status === 'active' ? 'good' : customer.status === 'suspended' ? 'warn' : 'neutral'} dot>{t(`customers.${customer.status}`)}</Badge>
-                        {can_see_money && billing_balance !== null ? <span className="text-sm text-muted" dir="ltr">{t('customers.balance')}: ${billing_balance}</span> : null}
-                        {page.props.auth.abilities?.tickets_create ? <Link href={`/tickets?new=1&customer=${customer.id}`} className="inline-flex h-9 items-center rounded-ctl bg-brand-gradient px-3 text-sm font-semibold text-navy">{t('tickets.new')}</Link> : null}
-                    </div>
+                    <Badge tone={customer.status === 'active' ? 'good' : customer.status === 'suspended' ? 'warn' : 'neutral'}>{t(`customers.${customer.status}`)}</Badge>
                 </div>
                 {incidents.map((incident) => (
                     <p key={incident.id} className="mt-3 rounded-tile bg-bad-bg px-3 py-2 text-sm text-bad ring-1 ring-bad/30" data-testid="incident-banner">
@@ -159,108 +155,33 @@ export default function CustomerShow({
                 {page.props.auth.abilities?.tasks_create ? <div className="mt-3"><QuickTask customerId={customer.id} /></div> : null}
                 <div className="mt-4 flex flex-wrap gap-2" role="tablist">
                     {tabs.map((item) => (
-                        <button key={item} type="button" role="tab" aria-selected={tab === item} data-testid={`tab-${item}`} className={tab === item ? 'rounded-full bg-brand-gradient px-3 py-1.5 text-sm font-semibold text-navy shadow-[var(--glow-mint)]' : 'rounded-full border border-[var(--glass-border)] bg-[var(--glass)] px-3 py-1.5 text-sm text-muted'} onClick={() => setTab(item)}>
+                        <button key={item} type="button" role="tab" aria-selected={tab === item} data-testid={`tab-${item}`} className={tab === item ? 'rounded-full bg-navy px-3 py-1 text-sm text-white' : 'rounded-full bg-card px-3 py-1 text-sm ring-1 ring-line'} onClick={() => setTab(item)}>
                             {t(`customers.${item}`)}
                         </button>
                     ))}
                 </div>
                 <div className="mt-4">
                     {tab === 'overview' ? (
-                        <div className="grid items-start gap-4 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-                            <aside className="card p-5">
-                                <div className="flex flex-col items-center text-center">
-                                    <span className="grid size-20 place-items-center rounded-full bg-brand-gradient text-2xl font-semibold text-navy shadow-[var(--glow-aqua)] ring-4 ring-aqua/20">{initials(name)}</span>
-                                    <h2 className="mt-3 text-xl font-semibold">{name}</h2>
-                                    <Badge className="mt-2" tone={customer.status === 'active' ? 'good' : customer.status === 'suspended' ? 'warn' : 'neutral'} dot>{t(`customers.${customer.status}`)}</Badge>
+                        <section className="card grid gap-3 p-5 md:grid-cols-2">
+                            <Fact ltr label={t('customers.phones')} value={customer.phones.join(' · ') || t('customers.hidden')} />
+                            <Fact ltr label={t('customers.whatsapp')} value={customer.whatsapp || '—'} />
+                            <Fact ltr label={t('customers.email')} value={customer.email || '—'} />
+                            <Fact label={t('customers.landmark')} value={[customer.building, customer.floor, customer.landmark].filter(Boolean).join(' · ') || '—'} />
+                            <Fact ltr label={t('customers.pin')} value={customer.latitude && customer.longitude ? `${customer.latitude}, ${customer.longitude}` : '—'} />
+                            {customer.latitude && customer.longitude ? (
+                                <div className="md:col-span-2">
+                                    <CoverageMap tileUrl={tiles} height={220} pins={[{ id: customer.id, lat: Number(customer.latitude), lng: Number(customer.longitude), label: locale === 'ar' ? customer.name_ar : customer.name_en }]} />
                                 </div>
-                                <ul className="mt-5 space-y-3 text-sm">
-                                    <ProfileRow icon={<Phone className="size-4" />} value={customer.phones.join(' · ') || t('customers.hidden')} ltr />
-                                    <ProfileRow icon={<Mail className="size-4" />} value={customer.email || '—'} ltr />
-                                    <ProfileRow icon={<MapPin className="size-4" />} value={area || [customer.building, customer.floor, customer.landmark].filter(Boolean).join(' · ') || '—'} />
-                                    <ProfileRow icon={<Wifi className="size-4" />} value={customer.services.map((item) => t(`customers.${item.service_type}`)).join(' · ') || '—'} />
-                                </ul>
-                                {customer.tags.length > 0 ? <p className="mt-4 text-xs text-muted">{customer.tags.join(' · ')}</p> : null}
-                                <p className="mt-3 text-xs text-faint">{customer.type === 'business' ? customer.company_name : t(`customers.${customer.type}`)}</p>
-                            </aside>
-                            <section className="card p-5">
-                                <h2 className="text-sm font-semibold">{t('customers.timeline')}</h2>
-                                <ol className="relative mt-4 space-y-4 border-s border-aqua/30 ps-5">
-                                    {activity.length === 0 && tickets.length === 0 ? <li className="text-sm text-muted">{t('customers.no_activity')}</li> : null}
-                                    {activity.map((item) => (
-                                        <li key={`activity-${item.id}`} className="relative">
-                                            <span className="absolute -start-[26px] top-1 size-2.5 rounded-full bg-mint shadow-[0_0_12px_var(--brand-mint)]" />
-                                            <p className="text-sm font-semibold">{eventLabel(item.event, t)}</p>
-                                            <p className="text-xs text-muted">{formatWhen(item.at, locale)}</p>
-                                        </li>
+                            ) : null}
+                            <Fact label={t('customers.tags')} value={customer.tags.join(' · ') || '—'} />
+                            {orders.length > 0 ? (
+                                <div className="md:col-span-2 space-y-1 text-sm">
+                                    {orders.map((row) => (
+                                        <p key={row.id}><Link href={`/orders/${row.id}`}><span dir="ltr">{row.number}</span></Link> · {t(`orders.type_${row.type}`)} · {t(`orders.status_${row.status}`)}{row.sla_due ? ` · ${row.sla_due}` : ''}</p>
                                     ))}
-                                    {tickets.map((item) => (
-                                        <li key={`ticket-${item.id}`} className="relative">
-                                            <span className="absolute -start-[26px] top-1 size-2.5 rounded-full bg-aqua shadow-[0_0_12px_var(--brand-sky)]" />
-                                            <Link href={`/tickets/${item.id}`} className="text-sm font-semibold text-accent-ink"><span dir="ltr">{item.number}</span> · {item.subject}</Link>
-                                            <p className="text-xs text-muted">{item.priority} · {t(`tickets.status_${item.status}`)}</p>
-                                        </li>
-                                    ))}
-                                </ol>
-                                {customer.latitude && customer.longitude ? (
-                                    <div className="mt-4 overflow-hidden rounded-tile">
-                                        <CoverageMap tileUrl={tiles} height={180} pins={[{ id: customer.id, lat: Number(customer.latitude), lng: Number(customer.longitude), label: name }]} />
-                                    </div>
-                                ) : null}
-                                {orders.length > 0 ? (
-                                    <div className="mt-4 space-y-1 text-sm">
-                                        {orders.map((row) => (
-                                            <p key={row.id}><Link href={`/orders/${row.id}`}><span dir="ltr">{row.number}</span></Link> · {t(`orders.type_${row.type}`)} · {t(`orders.status_${row.status}`)}{row.sla_due ? ` · ${row.sla_due}` : ''}</p>
-                                        ))}
-                                    </div>
-                                ) : null}
-                            </section>
-                            <div className="grid gap-4">
-                                <section className="card p-4">
-                                    <h2 className="text-sm font-semibold">{t('customers.active_services')}</h2>
-                                    {customer.services.length === 0 ? <p className="mt-3 text-sm text-muted">{t('customers.no_services')}</p> : null}
-                                    <ul className="mt-3 space-y-3">
-                                        {customer.services.map((item) => (
-                                            <li key={item.id} className="rounded-tile border border-[var(--glass-border)] bg-well/40 p-3">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <p className="text-sm font-semibold">{t(`customers.${item.service_type}`)}</p>
-                                                    <Badge tone={item.status === 'active' ? 'good' : 'neutral'} dot>{t(`customers.${item.status}`)}</Badge>
-                                                </div>
-                                                <p className="mt-1 text-xs text-muted">{[item.plan_name, item.speed].filter(Boolean).join(' · ') || '—'}</p>
-                                                {item.radius_username !== undefined ? <p className="mt-1 text-xs text-muted" dir="ltr">{item.radius_username || '—'} · {item.static_ip || '—'}</p> : null}
-                                                {item.ont_serial ? <p className="mt-1 text-xs text-muted" dir="ltr">{item.ont_serial}</p> : null}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </section>
-                                <section className="card p-4">
-                                    <div className="flex items-center justify-between gap-2">
-                                        <h2 className="text-sm font-semibold">{t('customers.open_tickets')}</h2>
-                                        <button type="button" className="text-xs font-semibold text-accent-ink" onClick={() => setTab('tickets')}>{t('customers.view_all')}</button>
-                                    </div>
-                                    {tickets.length === 0 ? <p className="mt-3 text-sm text-muted">{t('customers.no_tickets')}</p> : null}
-                                    <ul className="mt-3 space-y-2">
-                                        {tickets.slice(0, 4).map((item) => (
-                                            <li key={item.id}>
-                                                <Link href={`/tickets/${item.id}`} className="flex items-center justify-between gap-2 text-sm">
-                                                    <span><span className="font-semibold text-accent-ink" dir="ltr">{item.number}</span> · {item.subject}</span>
-                                                    <Badge tone={item.priority === 'P1' ? 'bad' : item.status === 'pending_customer' ? 'warn' : 'info'}>{t(`tickets.status_${item.status}`)}</Badge>
-                                                </Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </section>
-                                <section className="card p-4">
-                                    <h2 className="text-sm font-semibold">{t('customers.quick')}</h2>
-                                    <div className="mt-3 grid grid-cols-2 gap-2">
-                                        {page.props.auth.abilities?.tickets_create ? <QuickLink href={`/tickets?new=1&customer=${customer.id}`} icon={<Ticket className="size-4" />} label={t('tickets.new')} /> : null}
-                                        <QuickButton icon={<StickyNote className="size-4" />} label={t('customers.notes')} onClick={() => setTab('notes')} />
-                                        <QuickButton icon={<Wifi className="size-4" />} label={t('customers.services')} onClick={() => setTab('services')} />
-                                        <QuickButton icon={<Receipt className="size-4" />} label={t('customers.billing')} onClick={() => setTab('billing')} />
-                                        <QuickButton icon={<FileText className="size-4" />} label={t('customers.files')} onClick={() => setTab('files')} />
-                                    </div>
-                                </section>
-                            </div>
-                        </div>
+                                </div>
+                            ) : null}
+                        </section>
                     ) : null}
                     {tab === 'services' ? (
                         <div className="grid gap-3">
@@ -412,57 +333,11 @@ export default function CustomerShow({
     );
 }
 
-function eventLabel(event: string, t: (key: string) => string): string {
-    const key = `customers.event_${event.replaceAll('.', '_')}`;
-    const label = t(key);
-
-    return label === key ? event : label;
-}
-
-function formatWhen(value: string | null, locale: string): string {
-    if (!value) {
-        return '';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat(locale === 'ar' ? 'ar' : 'en', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    }).format(date);
-}
-
-function ProfileRow({ icon, value, ltr }: { icon: ReactNode; value: string; ltr?: boolean }) {
+function Fact({ label, value, ltr }: { label: string; value: string; ltr?: boolean }) {
     return (
-        <li className="flex items-start gap-2 text-muted">
-            <span className="mt-0.5 text-aqua">{icon}</span>
-            <span className="text-text" dir={ltr ? 'ltr' : undefined}>{value}</span>
-        </li>
+        <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-faint">{label}</p>
+            <p className="mt-1 text-sm" dir={ltr ? 'ltr' : undefined}>{value}</p>
+        </div>
     );
 }
-
-function QuickButton({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
-    return (
-        <button type="button" onClick={onClick} className="flex flex-col items-center gap-1 rounded-tile border border-[var(--glass-border)] bg-well/40 px-2 py-3 text-xs font-semibold text-text hover:border-sky/40">
-            <span className="text-aqua">{icon}</span>
-            {label}
-        </button>
-    );
-}
-
-function QuickLink({ href, icon, label }: { href: string; icon: ReactNode; label: string }) {
-    return (
-        <Link href={href} className="flex flex-col items-center gap-1 rounded-tile border border-[var(--glass-border)] bg-well/40 px-2 py-3 text-xs font-semibold text-text hover:border-sky/40">
-            <span className="text-aqua">{icon}</span>
-            {label}
-        </Link>
-    );
-}
-

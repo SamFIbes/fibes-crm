@@ -1,6 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { initials } from '@/lib/utils';
 import { Ticket } from 'lucide-react';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -110,26 +109,10 @@ export default function TicketsIndex({
     })), [rows, t]);
 
     const tableColumns: ColumnDef<Row, unknown>[] = [
-        { header: t('tickets.title'), cell: ({ row }) => <Link className="font-mono text-xs font-semibold text-accent-ink" dir="ltr" href={`/tickets/${row.original.id}`}>{row.original.number}</Link> },
-        {
-            header: t('tickets.customer'),
-            cell: ({ row }) => {
-                const person = locale === 'ar' ? row.original.customer.name_ar : row.original.customer.name_en;
-
-                return (
-                    <div className="flex items-center gap-2">
-                        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-gradient text-2xs font-bold text-navy">{initials(person)}</span>
-                        <span>
-                            <span className="block font-semibold">{person}</span>
-                            <span className="block text-xs text-muted">{row.original.subject}</span>
-                        </span>
-                    </div>
-                );
-            },
-        },
-        { header: t('tickets.priority'), cell: ({ row }) => <Badge tone={row.original.priority === 'P1' ? 'bad' : row.original.priority === 'P2' ? 'warn' : row.original.priority === 'P4' ? 'good' : 'info'}>{t(`tickets.priority_${row.original.priority}`)}</Badge> },
-        { header: t('tickets.status'), cell: ({ row }) => <Badge tone={statusTone(row.original.status)} dot>{t(`tickets.status_${row.original.status}`)}</Badge> },
-        { header: t('tickets.assignee'), cell: ({ row }) => <span className="text-sm">{row.original.assignee ?? '—'}</span> },
+        { header: t('tickets.title'), cell: ({ row }) => <Link className="font-semibold text-accent-ink" dir="ltr" href={`/tickets/${row.original.id}`}>{row.original.number}</Link> },
+        { header: t('tickets.subject'), cell: ({ row }) => <span>{row.original.subject}<div className="text-xs text-muted">{locale === 'ar' ? row.original.customer.name_ar : row.original.customer.name_en}</div></span> },
+        { header: t('tickets.priority'), cell: ({ row }) => <Badge tone={row.original.priority === 'P1' ? 'bad' : row.original.priority === 'P2' ? 'warn' : 'info'}>{row.original.priority}</Badge> },
+        { header: t('tickets.status'), cell: ({ row }) => t(`tickets.status_${row.original.status}`) },
         { header: t('tickets.sla'), cell: ({ row }) => <SlaChip response={row.original.sla.response} resolve={row.original.sla.resolve} /> },
     ];
 
@@ -151,7 +134,7 @@ export default function TicketsIndex({
     return (
         <AppShell>
             <Head title={t('tickets.title')} />
-            <PageHeader title={<span className="inline-flex items-center gap-2"><span className="pulse-live size-2.5 rounded-full bg-mint" />{t('tickets.title')}</span>} sub={t('tickets.subtitle')} actions={
+            <PageHeader title={t('tickets.title')} sub={t('tickets.subtitle')} actions={
                 <div className="flex gap-2">
                     <Button type="button" variant={mode === 'list' ? 'default' : 'outline'} onClick={() => setMode('list')}>{t('tickets.list')}</Button>
                     <Button type="button" variant={mode === 'board' ? 'default' : 'outline'} onClick={() => setMode('board')}>{t('tickets.board')}</Button>
@@ -159,7 +142,7 @@ export default function TicketsIndex({
                 </div>
             } />
             <p className="mb-3 text-xs text-faint">{t('tickets.shortcut')}</p>
-            <div className="card mb-4 flex flex-wrap gap-2 p-3" data-testid="tickets-page">
+            <div className="mb-4 flex flex-wrap gap-2" data-testid="tickets-page">
                 <Input id="ticket-search" className="max-w-xs" placeholder={t('tickets.search')} defaultValue={filters.q} onKeyDown={(event) => { if (event.key === 'Enter') apply({ ...filters, q: (event.target as HTMLInputElement).value }); }} />
                 <FilterSelect label={t('tickets.status')} value={filters.status} onChange={(status) => apply({ ...filters, status })} options={[{ value: '', label: t('filters.any') }, ...statuses.map((status) => ({ value: status, label: t(`tickets.status_${status}`) }))]} />
                 <FilterSelect label={t('tickets.priority')} value={filters.priority} onChange={(priority) => apply({ ...filters, priority })} options={[{ value: '', label: t('filters.any') }, ...priorities.map((priority) => ({ value: priority, label: priority }))]} />
@@ -169,7 +152,7 @@ export default function TicketsIndex({
                 <Button type="button" variant={filters.mine ? 'default' : 'outline'} onClick={() => apply({ ...filters, mine: !filters.mine })}>{t('tickets.mine')}</Button>
             </div>
             <div className="mb-4 flex flex-wrap gap-2">
-                {views.map((view) => <button key={view.id} type="button" className="rounded-full border border-[var(--glass-border)] bg-[var(--glass)] px-3 py-1 text-sm" onClick={() => apply({ ...filters, ...view.filters } as typeof filters)}>{view.name}</button>)}
+                {views.map((view) => <button key={view.id} type="button" className="rounded-full bg-card px-3 py-1 text-sm ring-1 ring-line" onClick={() => apply({ ...filters, ...view.filters } as typeof filters)}>{view.name}</button>)}
             </div>
             {rows.length === 0 ? <div className="card"><EmptyState icon={<Ticket className="size-5" />} title={t('tickets.empty')} body={t('tickets.shortcut')} /></div> : null}
             {rows.length > 0 && mode === 'list' ? <DataTable columns={tableColumns} data={rows} /> : null}
@@ -246,17 +229,7 @@ function SlaChip({ response, resolve }: { response: SlaSide; resolve: SlaSide })
     const worst = [response, resolve].sort((a, b) => rank(b.state) - rank(a.state))[0];
     const tone = worst.state === 'breached' ? 'bad' : worst.state === 'warning' ? 'warn' : worst.state === 'met' ? 'good' : 'neutral';
 
-    return <Badge tone={tone} dot>{t(`tickets.${worst.state === 'ok' ? 'response' : worst.state}`)} {formatRemaining(worst.remaining_seconds)}</Badge>;
-}
-
-function statusTone(status: string): 'good' | 'warn' | 'bad' | 'info' | 'violet' | 'neutral' {
-    if (status === 'resolved') return 'good';
-    if (status === 'pending_customer') return 'warn';
-    if (status === 'reopened') return 'bad';
-    if (status === 'escalated') return 'violet';
-    if (status === 'closed') return 'neutral';
-
-    return 'info';
+    return <Badge tone={tone}>{t(`tickets.${worst.state === 'ok' ? 'response' : worst.state}`)} {formatRemaining(worst.remaining_seconds)}</Badge>;
 }
 
 function rank(state: string): number {

@@ -46,18 +46,6 @@ describe('brand contrast', () => {
     const light = parseBlock(css, ':root');
     const dark = parseBlock(css, 'html\\.dark');
 
-    it('defines the 2055 glass, glow, and motion tokens', () => {
-        expect(css).toContain('--glass-blur:');
-        expect(css).toContain('--glass-saturate:');
-        expect(css).toContain('--glow-mint:');
-        expect(css).toContain('--glow-aqua:');
-        expect(css).toContain('--dur-drift:');
-        expect(css).toContain('--dur-pulse:');
-        expect(css).toContain('--r-glass:');
-        expect(light['brand-navy']).toBe('#0e0f2d');
-        expect(dark.bg).toBe('#090a22');
-    });
-
     it('keeps the navy and mint brand colours', () => {
         expect(light['brand-navy']).toBe('#0e0f2d');
         expect(light['brand-mint']).toBe('#66c48f');
