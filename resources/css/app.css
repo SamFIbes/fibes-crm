@@ -6,6 +6,7 @@
 @import '@fontsource/ibm-plex-sans-arabic/latin-400.css';
 @import 'tailwindcss';
 @import './tokens.css';
+@import './guest.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
