@@ -13,7 +13,7 @@ describe('official logo', () => {
         const { container } = renderLogo(<Logo />);
         const image = screen.getByRole('img', { name: /fibes/i });
 
-        expect(image).toHaveAttribute('src', expect.stringMatching(/^\/brand\/logo-compact-on-(light|dark)\.png$/));
+        expect(image).toHaveAttribute('src', '/brand/fibes-icon.png');
         expect(image.closest('[dir="ltr"]')).not.toBeNull();
         expect(container.querySelector('svg')).toBeNull();
     });
@@ -27,6 +27,6 @@ describe('official logo', () => {
 
         const artwork = container.querySelector('[data-brand="logo-full"]');
         expect(artwork).toHaveAttribute('dir', 'ltr');
-        expect(artwork?.querySelector('img')).toHaveAttribute('src', '/brand/logo-full-on-dark.png');
+        expect(artwork?.querySelector('img')).toHaveAttribute('src', '/brand/fibes-icon.png');
     });
 });

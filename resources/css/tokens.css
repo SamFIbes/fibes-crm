@@ -1,25 +1,30 @@
 /*
- * Tend theme tokens for FIBES CRM
- * -------------------------------------------------------------
- * Adapted from Tend (169-tend) — © 2026 Hasib (OVERSHOOT).
- * Licensed to itsahmadfakih@hotmail.com (order INS-17C376DF).
- * See resources/theme/tend/LICENSE.md. Not a redistributable kit.
+ * Fibes.net brand tokens.
+ * Source: https://www.fibes.net CSS chunks
+ *   /_next/static/immutable/chunks/126uw1kg5vu2d.css
+ *   /_next/static/immutable/chunks/2tn9jolrdbfqz.css
+ *   /_next/static/immutable/chunks/36aietvxpcee6.css
+ *   /_next/static/immutable/chunks/1cu72s8lb7wzg.css
+ * fetched 8 Nov 2026. Hex values below are copied from those files
+ * unless a line says "adjusted".
  *
- * Calm clinical sage paper, a deep-teal sidebar, pill controls.
- * The official FIBES logo files are unchanged.
+ * Light custom properties live on :root. Dark values are under
+ * @media (prefers-color-scheme: dark) and :root[data-theme=dark].
+ * theme-color meta and the site manifest use #06131a.
  */
 
 :root {
-  --brand-navy: #10231f;
-  --brand-mint: #4fbf93;
-  --brand-aqua: #138a7e;
-  --brand-sky: #4c94dc;
-  --brand-gradient: linear-gradient(120deg, #0d5c55 0%, #138a7e 55%, #4fbf93 100%);
-  --brand-gradient-soft: linear-gradient(120deg, rgb(19 138 126 / 0.16), rgb(76 148 220 / 0.1));
+  --brand-navy: #0a1b25; /* --ink */
+  --brand-mint: #1fd17a; /* --green */
+  --brand-aqua: #19c3d6; /* --cyan */
+  --brand-sky: #0a7f91; /* --hero-sky */
+  --brand-gradient: linear-gradient(100deg, #0a784a, #0a7286); /* --band-grad, dark enough for text */
+  --brand-gradient-soft: linear-gradient(120deg, #d7eff3, #daf2e6); /* --hero-glow, --hero-glow-2 */
 
-  --font-latin: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-arabic: 'IBM Plex Sans Arabic', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-latin: Figtree, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: Poppins, Figtree, ui-sans-serif, system-ui, sans-serif;
+  --font-arabic: Cairo, Figtree, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   --fs-2xs: 11px;
   --fs-xs: 12px;
   --fs-sm: 12.5px;
@@ -44,108 +49,109 @@
   --dur: 240ms;
   --dur-slow: 420ms;
 
-  --bg: #eef2ef;
-  --bg-glow: radial-gradient(60vmax 50vmax at 12% -10%, #d7efe4, transparent 70%),
-    radial-gradient(50vmax 40vmax at 100% 0%, #e6eef6, transparent 70%);
-  --card: #fbfcfb;
-  --card-2: #f4f7f5;
+  --bg: #f2f6f7;
+  --bg-glow: radial-gradient(60vmax 50vmax at 12% -10%, #d7eff3, transparent 70%),
+    radial-gradient(50vmax 40vmax at 100% 0%, #daf2e6, transparent 70%);
+  --card: #ffffff; /* --surface */
+  --card-2: #e6eef0; /* --surface-2 */
   --raised: #ffffff;
-  --well: rgb(16 35 31 / 0.055);
-  --line: rgb(16 35 31 / 0.085);
-  --line-2: rgb(16 35 31 / 0.16);
-  --text: #10231f;
-  --muted: #586a65;
-  --faint: #4a5c57;
-  --accent: #0d5c55;
-  --on-accent: #f1fbf7;
-  --accent-ink: #0d5c55;
-  --ring: #0d5c55;
-  --shadow: 0 1px 2px rgb(16 35 31 / 0.04), 0 14px 34px -22px rgb(16 35 31 / 0.22);
-  --shadow-lift: 0 2px 4px rgb(16 35 31 / 0.05), 0 18px 40px -24px rgb(16 35 31 / 0.28);
-  --shadow-pop: 0 24px 60px -18px rgb(16 35 31 / 0.3), 0 2px 6px rgb(16 35 31 / 0.08);
+  --well: rgb(10 27 37 / 0.05);
+  --line: #d6e2e5;
+  --line-2: #b7c9cf;
+  --text: #132530;
+  --muted: #55686f;
+  --faint: #3c5159; /* --band-lede; darker than --muted so small labels clear AA */
+  --accent: #1fd17a; /* --green, button fill */
+  --on-accent: #04241a; /* --on-grad */
+  --accent-ink: #087548; /* --accent-text; #1fd17a as text on white is 2.01:1 */
+  --ring: #07687a; /* --band-cyan */
+  --shadow: 0 1px 2px rgb(10 27 37 / 0.04), 0 14px 34px -22px rgb(10 27 37 / 0.22);
+  --shadow-lift: 0 2px 4px rgb(10 27 37 / 0.05), 0 18px 40px -24px rgb(10 27 37 / 0.28);
+  --shadow-pop: 0 24px 60px -24px #0a1b2538;
 
-  --side: #0f2d29;
-  --side-2: #143833;
-  --side-text: #dcebe7;
-  --side-dim: #b7cdc7;
-  --side-faint: #8eaaa4;
+  --side: #06131a; /* --ink-deep, also theme-color */
+  --side-2: #0a1b25; /* --ink */
+  --side-text: #e7f1f2; /* --on-dark */
+  --side-dim: #93abb2; /* --on-dark-muted */
+  --side-faint: #b4c8ce;
   --side-hover: rgb(255 255 255 / 0.06);
   --side-line: rgb(255 255 255 / 0.08);
-  --side-pill: #c4ecd9;
-  --on-side-pill: #0b2925;
+  --side-pill: #1fd17a;
+  --on-side-pill: #04241a;
 
-  --wa: #1fa855;
-  --tick: #2b9fe0;
+  --wa: #25d366;
+  --tick: #19c3d6;
 
-  --good: #0f5c3c;
-  --good-bg: #d7efe4;
-  --warn: #7a4808;
+  --good: #076c45; /* --band-green; #1fd17a text on white fails AA */
+  --good-bg: #e7f6ee;
+  --warn: #8f6209; /* adjusted from --hero-amber #9a6a0a (3.99:1 on #f8ead3) */
   --warn-bg: #f8ead3;
-  --bad: #922e18;
-  --bad-bg: #f8ddd6;
-  --info: #1d5f99;
-  --info-bg: #d8e5f6;
-  --violet: #6d56c0;
-  --violet-bg: #e6e0f8;
+  --bad: #b42338; /* adjusted from --danger #d13a4e (4.16:1 on the pale badge) */
+  --bad-bg: #fdecef;
+  --info: #07687a; /* --band-cyan; #19c3d6 text on white is too light */
+  --info-bg: #e5f6f8;
+  --violet: #0f2a36; /* --ink-2, kept distinct from green/cyan/amber */
+  --violet-bg: #e6eef0;
 
-  --c-fiber: #138a7e;
-  --c-ptp: #4c94dc;
-  --c-ptmp: #8b72d8;
-  --c-internal: #e9953f;
-  --c-grid: rgb(16 35 31 / 0.07);
+  --c-fiber: #0a7f91;
+  --c-ptp: #19c3d6;
+  --c-ptmp: #076c45;
+  --c-internal: #8f6209;
+  --c-grid: rgb(10 27 37 / 0.07);
 
   color-scheme: light;
 }
 
 html.dark {
-  --bg: #0b1312;
-  --bg-glow: radial-gradient(60vmax 50vmax at 12% -10%, rgb(19 138 126 / 0.16), transparent 70%),
-    radial-gradient(50vmax 40vmax at 100% 0%, rgb(76 148 220 / 0.08), transparent 70%);
-  --card: #121d1c;
-  --card-2: #172423;
-  --raised: #1b2a28;
-  --well: rgb(255 255 255 / 0.055);
-  --line: rgb(255 255 255 / 0.075);
-  --line-2: rgb(255 255 255 / 0.15);
-  --text: #e5efec;
-  --muted: #9db0aa;
-  --faint: #c5d5d0;
-  --accent: #5cd0b4;
-  --on-accent: #06201c;
-  --accent-ink: #5cd0b4;
-  --ring: #5cd0b4;
+  --brand-gradient: linear-gradient(100deg, #22e07a, #18cfe0); /* --grad */
+  --bg: #08141b;
+  --bg-glow: radial-gradient(60vmax 50vmax at 12% -10%, #123d4a, transparent 70%),
+    radial-gradient(50vmax 40vmax at 100% 0%, #0f3a33, transparent 70%);
+  --card: #0f212a; /* --surface */
+  --card-2: #152f39; /* --surface-2 */
+  --raised: #152f39;
+  --well: rgb(255 255 255 / 0.06);
+  --line: #203e48;
+  --line-2: #2c5562;
+  --text: #e3edef;
+  --muted: #98aeb5;
+  --faint: #b4c8ce; /* --band-lede */
+  --accent: #1fd17a;
+  --on-accent: #04241a;
+  --accent-ink: #3ee39a; /* dark --accent-text */
+  --ring: #19c3d6;
   --shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 18px 40px -26px rgb(0 0 0 / 0.8);
   --shadow-lift: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 22px 48px -24px rgb(0 0 0 / 0.85);
-  --shadow-pop: 0 24px 60px -18px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.08);
+  --shadow-pop: 0 24px 60px -20px #00000073;
 
-  --side: #0e1918;
-  --side-2: #142220;
-  --side-text: #d6e6e2;
-  --side-dim: #9db0aa;
-  --side-faint: #6f817c;
+  --side: #06131a;
+  --side-2: #0a1b25;
+  --side-text: #e7f1f2;
+  --side-dim: #98aeb5;
+  --side-faint: #93abb2;
   --side-hover: rgb(255 255 255 / 0.06);
   --side-line: rgb(255 255 255 / 0.08);
-  --side-pill: #5cd0b4;
-  --on-side-pill: #06201c;
+  --side-pill: #1fd17a;
+  --on-side-pill: #04241a;
 
-  --wa: #3fd17a;
-  --tick: #53bdeb;
+  --wa: #25d366;
+  --tick: #8ce6f0;
 
-  --good: #5fd09a;
-  --good-bg: rgb(95 208 154 / 0.16);
-  --warn: #f0b45a;
-  --warn-bg: rgb(240 180 90 / 0.16);
-  --bad: #f2836a;
-  --bad-bg: rgb(242 131 106 / 0.16);
-  --info: #74b3f0;
-  --info-bg: rgb(116 179 240 / 0.16);
-  --violet: #a996ee;
-  --violet-bg: rgb(169 150 238 / 0.16);
+  --good: #1fd17a;
+  --good-bg: rgb(31 209 122 / 0.16);
+  --warn: #ffd27a; /* site amber highlight; #9a6a0a fails on this background */
+  --warn-bg: rgb(255 210 122 / 0.16);
+  --bad: #da6171; /* adjusted: --danger #d13a4e is 3.48:1 on #0f212a */
+  --bad-bg: rgb(209 58 78 / 0.2);
+  --info: #8ce6f0;
+  --info-bg: rgb(25 195 214 / 0.16);
+  --violet: #b4c8ce;
+  --violet-bg: rgb(180 200 206 / 0.12);
 
-  --c-fiber: #3cc0ad;
-  --c-ptp: #74b3f0;
-  --c-ptmp: #a996ee;
-  --c-internal: #f2aa5f;
+  --c-fiber: #19c3d6;
+  --c-ptp: #8ce6f0;
+  --c-ptmp: #1fd17a;
+  --c-internal: #ffd27a;
   --c-grid: rgb(255 255 255 / 0.06);
 
   color-scheme: dark;

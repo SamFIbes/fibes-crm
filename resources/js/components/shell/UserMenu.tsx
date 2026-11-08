@@ -20,7 +20,7 @@ export function UserMenu() {
                 data-testid="user-menu"
                 className="inline-flex h-[46px] items-center gap-2 rounded-full border border-line bg-card px-1.5 pe-3 text-sm font-semibold shadow-card"
             >
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#cfeadf] text-xs font-bold text-[#10231f]">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-good-bg text-xs font-bold text-good">
                     {initials(user.name)}
                 </span>
                 <span className="hidden max-w-32 truncate text-start md:inline">{user.name}</span>

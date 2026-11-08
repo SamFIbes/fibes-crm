@@ -48,16 +48,16 @@ describe('brand contrast', () => {
     const light = parseBlock(css, ':root');
     const dark = parseBlock(css, 'html.dark');
 
-    it('uses the Tend clinical palette', () => {
-        expect(light.bg).toBe('#eef2ef');
-        expect(light.text).toBe('#10231f');
-        expect(light.accent).toBe('#0d5c55');
-        expect(light.side).toBe('#0f2d29');
-        expect(light['side-pill']).toBe('#c4ecd9');
-        expect(dark.bg).toBe('#0b1312');
-        expect(dark.accent).toBe('#5cd0b4');
-        expect(dark.side).toBe('#0e1918');
-        expect(hex(rgb('#10231f'))).toBe('#10231f');
+    it('uses the fibes.net palette', () => {
+        expect(light.bg).toBe('#f2f6f7');
+        expect(light.text).toBe('#132530');
+        expect(light.accent).toBe('#1fd17a');
+        expect(light.side).toBe('#06131a');
+        expect(light['side-pill']).toBe('#1fd17a');
+        expect(dark.bg).toBe('#08141b');
+        expect(dark.accent).toBe('#1fd17a');
+        expect(dark.side).toBe('#06131a');
+        expect(hex(rgb('#132530'))).toBe('#132530');
     });
 
     it('meets WCAG AA for text on light surfaces', () => {
@@ -77,7 +77,7 @@ describe('brand contrast', () => {
         expect(contrast(dark.muted, dark.bg)).toBeGreaterThanOrEqual(4.5);
         expect(contrast(dark.muted, dark.card)).toBeGreaterThanOrEqual(4.5);
         expect(contrast(dark['on-accent'], dark.accent)).toBeGreaterThanOrEqual(4.5);
-        expect(contrast('#06201c', dark.bad)).toBeGreaterThanOrEqual(4.5);
+        expect(contrast('#04241a', dark.bad)).toBeGreaterThanOrEqual(4.5);
         expect(contrast(dark['side-text'] ?? light['side-text'], dark.side)).toBeGreaterThanOrEqual(4.5);
         expect(contrast(dark.ring, dark.bg)).toBeGreaterThanOrEqual(3);
     });

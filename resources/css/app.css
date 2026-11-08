@@ -1,11 +1,5 @@
-/*! Adapted from Tend (169-tend) — © 2026 Hasib (OVERSHOOT). Licensed to itsahmadfakih@hotmail.com (order INS-17C376DF). See resources/theme/tend/LICENSE.md. */
-@import '@fontsource-variable/geist';
-@import '@fontsource-variable/geist-mono';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
-@import '@fontsource/ibm-plex-sans-arabic/latin-400.css';
+/* Fibes.net brand: Figtree, Poppins, Cairo. Files in public/brand/fonts. */
+@import './fonts.css';
 @import 'tailwindcss';
 @import './tokens.css';
 
@@ -95,6 +89,8 @@
     text-rendering: optimizeLegibility;
   }
   html[lang='ar'] { font-family: var(--font-arabic); }
+  h1, h2, h3, .text-display { font-family: var(--font-heading); }
+  html[lang='ar'] h1, html[lang='ar'] h2, html[lang='ar'] h3, html[lang='ar'] .text-display { font-family: var(--font-arabic); }
   html.is-dragging, html.is-dragging body { overflow-x: clip; overscroll-behavior: none; }
   html.is-dragging, html.is-dragging * { cursor: grabbing !important; user-select: none; }
   html, body {
