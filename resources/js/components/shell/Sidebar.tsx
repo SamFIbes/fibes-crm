@@ -1,9 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronsLeft, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { BrandLogo, BrandMark } from '@/components/brand';
-import { spring } from '@/lib/motion';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { SharedProps } from '@/types';
@@ -40,16 +38,14 @@ export function Sidebar({
 
     return (
         <>
-            <AnimatePresence>
-                {mobileOpen ? (
-                    <motion.button type="button" aria-label={t('nav.close_menu')} className="fixed inset-0 z-40 bg-black/50 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
-                ) : null}
-            </AnimatePresence>
-            <motion.aside
+            {mobileOpen ? (
+                <button type="button" aria-label={t('nav.close_menu')} className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />
+            ) : null}
+            <aside
                 aria-label={t('a11y.main')}
-                animate={{ width: desktop ? (collapsed ? 76 : 248) : 288 }}
-                transition={spring}
+                style={{ width: desktop ? (collapsed ? 76 : 248) : 288 }}
                 className={cn(
+                    'transition-[width,transform] duration-300',
                     'fixed inset-y-0 start-0 z-50 flex max-w-[calc(100vw-3rem)] flex-col overflow-hidden bg-side text-side-text lg:translate-x-0 dark:border-e dark:border-line',
                     mobileOpen ? 'translate-x-0' : 'max-lg:ltr:-translate-x-[110%] max-lg:rtl:translate-x-[110%]',
                 )}
@@ -107,7 +103,7 @@ export function Sidebar({
                 >
                     <ChevronsLeft className={cn('size-4 transition-transform', collapsed !== (dir === 'rtl') && 'rotate-180')} />
                 </button>
-            </motion.aside>
+            </aside>
         </>
     );
 }

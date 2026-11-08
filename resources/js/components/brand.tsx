@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
 import { cn } from '@/lib/utils';
 import { prefersReducedMotion } from '@/lib/motion';
 import { useTheme } from '@/lib/theme';
@@ -27,13 +26,27 @@ function useEntrance(animated?: boolean) {
             return;
         }
 
-        const ctx = gsap.context(() => {
-            gsap.fromTo('[data-logo-art]', { opacity: 0, scale: 0.92, filter: 'blur(10px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1.3, ease: 'expo.out' });
-            gsap.fromTo('[data-logo-glow]', { opacity: 0 }, { opacity: 0.85, duration: 1.6, delay: 0.3, ease: 'sine.out' });
-            gsap.to('[data-logo-glow]', { opacity: 0.45, scale: 1.08, duration: 3.2, delay: 1.9, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-        }, ref);
+        const root = ref.current;
+        let revert: () => void = () => {};
+        let cancelled = false;
 
-        return () => ctx.revert();
+        void import('gsap').then(({ default: gsap }) => {
+            if (cancelled) {
+                return;
+            }
+
+            const ctx = gsap.context(() => {
+                gsap.fromTo('[data-logo-art]', { opacity: 0, scale: 0.92, filter: 'blur(10px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1.3, ease: 'expo.out' });
+                gsap.fromTo('[data-logo-glow]', { opacity: 0 }, { opacity: 0.85, duration: 1.6, delay: 0.3, ease: 'sine.out' });
+                gsap.to('[data-logo-glow]', { opacity: 0.45, scale: 1.08, duration: 3.2, delay: 1.9, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+            }, root);
+            revert = () => ctx.revert();
+        });
+
+        return () => {
+            cancelled = true;
+            revert();
+        };
     }, [animated]);
 
     return ref;

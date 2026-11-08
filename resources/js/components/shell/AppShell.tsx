@@ -1,8 +1,7 @@
 import { usePage } from '@inertiajs/react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { router } from '@inertiajs/react';
 import { useEffect, useState, type ReactNode } from 'react';
-import { page as pageMotion, prefersReducedMotion } from '@/lib/motion';
+import { prefersReducedMotion } from '@/lib/motion';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { SharedProps } from '@/types';
@@ -72,11 +71,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                     {typeof inertia.props.security?.two_factor_grace_days === 'number' && inertia.props.security.two_factor_grace_days > 0 ? (
                         <p className="mb-3 rounded-tile border border-line bg-card px-4 py-2 text-sm">{t('security.grace_banner', { days: inertia.props.security.two_factor_grace_days })}</p>
                     ) : null}
-                        <AnimatePresence mode="wait" initial={false}>
-                            <motion.div key={inertia.url} variants={reduce ? undefined : pageMotion} initial={reduce ? false : 'initial'} animate="enter" exit="exit">
-                                {children}
-                            </motion.div>
-                        </AnimatePresence>
+                        <div key={inertia.url} className={reduce ? undefined : 'page-enter'}>
+                            {children}
+                        </div>
                     </main>
                 </div>
             </div>

@@ -60,4 +60,7 @@ ENV PORT=10000 \
     DB_CONNECTION=pgsql
 
 EXPOSE 10000
+# start.sh has to run as root: it writes the nginx config, migrates, and chowns storage.
+# php-fpm workers, the queue, and the scheduler run as www-data. nginx drops its workers.
+# nosemgrep: dockerfile.security.missing-user.missing-user, dockerfile.security.missing-user-entrypoint.missing-user-entrypoint
 CMD ["/start.sh"]

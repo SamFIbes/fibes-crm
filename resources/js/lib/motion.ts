@@ -6,9 +6,9 @@ export const spring: Transition = { type: 'spring', stiffness: 420, damping: 34,
 export const drawerSpring: Transition = { type: 'spring', stiffness: 380, damping: 38, mass: 0.9 }
 
 export const page: Variants = {
-  initial: { opacity: 0, y: 10, filter: 'blur(4px)' },
-  enter: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.42, ease: easeOut } },
-  exit: { opacity: 0, y: -6, filter: 'blur(2px)', transition: { duration: 0.18, ease: easeOut } },
+  initial: { y: 8 },
+  enter: { y: 0, transition: { duration: 0.22, ease: easeOut } },
+  exit: { y: -4, transition: { duration: 0.12, ease: easeOut } },
 }
 
 export const stagger = (step = 0.045, delay = 0.04): Variants => ({

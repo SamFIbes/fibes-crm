@@ -3,8 +3,10 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 function parseBlock(css: string, selector: string): Record<string, string> {
-    const match = css.match(new RegExp(`${selector}\\s*\\{([\\s\\S]*?)\\n\\}`));
-    const body = match?.[1] ?? '';
+    const marker = `${selector} {`;
+    const start = css.indexOf(marker);
+    const end = start === -1 ? -1 : css.indexOf('\n}', start);
+    const body = start === -1 || end === -1 ? '' : css.slice(start + marker.length, end);
     const colors: Record<string, string> = {};
 
     for (const entry of body.matchAll(/--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})/g)) {
@@ -44,7 +46,7 @@ function contrast(a: string, b: string): number {
 describe('brand contrast', () => {
     const css = readFileSync(resolve(process.cwd(), 'resources/css/tokens.css'), 'utf8');
     const light = parseBlock(css, ':root');
-    const dark = parseBlock(css, 'html\\.dark');
+    const dark = parseBlock(css, 'html.dark');
 
     it('uses the Tend clinical palette', () => {
         expect(light.bg).toBe('#eef2ef');

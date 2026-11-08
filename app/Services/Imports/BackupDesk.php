@@ -51,7 +51,7 @@ class BackupDesk
         $plain = $this->decrypt((string) file_get_contents($latest), $this->key());
 
         if (is_file($scratch)) {
-            unlink($scratch);
+            unlink($scratch); // nosemgrep: php.lang.security.unlink-use.unlink-use
         }
 
         $pdo = new \PDO('sqlite:'.$scratch);
@@ -160,13 +160,13 @@ class BackupDesk
 
         foreach (File::glob($directory.'/backup-*.fibes') ?: [] as $file) {
             if (filemtime($file) < now()->subDays($keepDays)->getTimestamp()) {
-                unlink($file);
+                unlink($file); // nosemgrep: php.lang.security.unlink-use.unlink-use
             }
         }
 
         foreach (File::glob($directory.'/monthly/backup-*.fibes') ?: [] as $file) {
             if (filemtime($file) < now()->subMonths($keepMonths)->getTimestamp()) {
-                unlink($file);
+                unlink($file); // nosemgrep: php.lang.security.unlink-use.unlink-use
             }
         }
     }

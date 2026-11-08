@@ -143,6 +143,14 @@
     box-shadow: var(--shadow);
   }
   .icon-btn:hover { background: var(--card-2); }
+  @keyframes page-enter {
+    from { transform: translateY(8px); }
+    to { transform: translateY(0); }
+  }
+  .page-enter { animation: page-enter 0.22s var(--ease-out); }
+  @media (prefers-reduced-motion: reduce) {
+    .page-enter { animation: none; }
+  }
   @media (max-width: 480px) {
     button, select, input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']), textarea {
       min-height: 44px;

@@ -1,9 +1,8 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
 import { navGroups } from '@/components/shell/nav';
 import { Button } from '@/components/ui/button';
-import { Drawer } from '@/components/ui/drawer';
 import { PageHeader } from '@/components/ui/page-header';
 import { useI18n } from '@/lib/i18n';
 import type { SharedProps } from '@/types';
@@ -36,6 +35,7 @@ export default function Dashboard({
     const links = navGroups.flatMap((group) => group.items).filter((item) => item.key !== 'dashboard' && allowed.has(item.key));
     const layout = useForm({ keys: tiles.map((tile) => tile.key), from, to });
     const [editing, setEditing] = useState(false);
+    const [TileDrawer, setTileDrawer] = useState<ComponentType<{ open: boolean; onOpenChange: (open: boolean) => void; title: string; description?: string; children: ReactNode }> | null>(null);
     const queues = attention?.queues ?? [];
     const waiting = queues.reduce((sum, queue) => sum + queue.count, 0);
 
@@ -54,7 +54,16 @@ export default function Dashboard({
                     sub={t(`reports.home_${home}`)}
                     actions={
                         <div className="flex flex-wrap gap-2">
-                            <Button type="button" variant="outline" onClick={() => setEditing(true)}>{t('dashboard.edit_tiles')}</Button>
+                            <Button type="button" variant="outline" onClick={() => {
+                                if (TileDrawer) {
+                                    setEditing(true);
+                                    return;
+                                }
+                                void import('@/components/ui/drawer').then((mod) => {
+                                    setTileDrawer(() => mod.Drawer);
+                                    setEditing(true);
+                                });
+                            }}>{t('dashboard.edit_tiles')}</Button>
                             <Button type="button" onClick={() => router.get('/reports', { from, to })}>{t('reports.open')}</Button>
                         </div>
                     }
@@ -119,7 +128,7 @@ export default function Dashboard({
                         })}
                     </div>
                 </details>
-                <Drawer open={editing} onOpenChange={setEditing} title={t('dashboard.edit_tiles')} description={t('reports.layout')}>
+                {TileDrawer ? <TileDrawer open={editing} onOpenChange={setEditing} title={t('dashboard.edit_tiles')} description={t('reports.layout')}>
                     <form className="grid gap-3 p-6" onSubmit={(event) => { event.preventDefault(); layout.post('/dashboard/layout'); }}>
                         {choices.map((key) => (
                             <label key={key} className="flex min-h-11 items-center gap-3 text-sm">
@@ -129,7 +138,7 @@ export default function Dashboard({
                         ))}
                         <Button type="submit" variant="outline">{t('reports.save_layout')}</Button>
                     </form>
-                </Drawer>
+                </TileDrawer> : null}
             </div>
         </AppShell>
     );
