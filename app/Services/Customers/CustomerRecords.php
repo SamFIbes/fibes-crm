@@ -228,6 +228,7 @@ class CustomerRecords
         $row['longitude'] = $seePii ? $customer->longitude : null;
         $row['notes'] = $customer->notes;
         $row['owner'] = $customer->owner?->name;
+        $row['whatsapp_consent'] = (bool) $customer->whatsapp_consent;
 
         return $row;
     }
@@ -448,6 +449,10 @@ class CustomerRecords
             $row['mac'] = $service->mac;
             $row['nas'] = $service->nas;
             $row['vlan'] = $service->vlan;
+            $row['radius_online'] = $service->radius_online;
+            $row['radius_status'] = $service->radius_remote_status;
+            $row['radius_framed_ip'] = $service->radius_framed_ip;
+            $row['radius_checked_at'] = $service->radius_checked_at?->toIso8601String();
         }
 
         if ($seeTechnical) {

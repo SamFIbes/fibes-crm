@@ -10,12 +10,18 @@ use App\Models\CustomerService;
 use App\Models\CustomerView;
 use App\Models\Invoice;
 use App\Models\Order;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Billing\Ledger;
 use App\Services\Catalog\CatalogDesk;
 use App\Services\Customers\CustomerRecords;
 use App\Services\Files\FileDesk;
+use App\Services\Integrations\IntegrationRecorder;
+use App\Services\Integrations\IntegrationSettings;
+use App\Services\Integrations\KryptonRadiusClient;
+use App\Services\Integrations\WhatsAppBusinessClient;
+use App\Services\Integrations\WhatsAppDesk;
 use App\Services\Tickets\IncidentRecords;
 use App\Services\Tickets\TicketRecords;
 use App\Support\Access\AccessGate;
@@ -26,6 +32,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class CustomerController extends Controller
 {
@@ -133,6 +140,10 @@ class CustomerController extends Controller
                 'status' => $row->status,
                 'sla_due' => $row->sla_due?->format('d/m/Y'),
             ])->values(),
+            'can_dial' => $access->allows($actor, 'calls.log') && app(IntegrationSettings::class)->dialReady() && filled($actor->extension),
+            'can_check_radius' => $access->allows($actor, 'services.radius_fields.view') || $access->allows($actor, 'services.radius_fields.edit'),
+            'radius_live' => app(KryptonRadiusClient::class)->ready(),
+            'whatsapp_live' => app(WhatsAppBusinessClient::class)->ready(),
             'billing_balance' => $seeBalance ? $ledger->balance($customer->id) : null,
             'billing_invoices' => $seeMoney ? Invoice::query()->where('customer_id', $customer->id)->whereNull('archived_at')->latest('id')->limit(20)->get()->map(fn (Invoice $invoice) => [
                 'id' => $invoice->id,
@@ -190,6 +201,70 @@ class CustomerController extends Controller
         return response()->json([
             'password' => $records->revealPassword($service, $actor, $request),
         ]);
+    }
+
+    public function radiusSession(Request $request, Customer $customer, CustomerService $service, CustomerRecords $records, AccessGate $access, KryptonRadiusClient $radius, IntegrationRecorder $recorder): RedirectResponse
+    {
+        $actor = $this->actor($request, $access);
+        $this->authorizeCustomer($actor, $customer, $records);
+        abort_unless($service->customer_id === $customer->id, 404);
+        abort_unless(filled($service->radius_username), 404);
+
+        if (! $radius->ready()) {
+            return back()->withErrors(['radius' => __('ui.customers.radius_off')]);
+        }
+
+        try {
+            $session = $radius->session((string) $service->radius_username);
+        } catch (Throwable $exception) {
+            $recorder->attempt('krypton', 'session', 'failed', $recorder->redact($exception->getMessage()), $actor, [
+                'customer_id' => $customer->id,
+                'service_id' => $service->id,
+            ], $request);
+
+            return back()->withErrors(['radius' => __('ui.integrations.test_failed')]);
+        }
+
+        $service->radius_remote_status = mb_substr($session['status'], 0, 40);
+        $service->radius_online = $session['online'];
+        $service->radius_framed_ip = $session['framed_ip'];
+        $service->radius_checked_at = now();
+        $service->save();
+        $recorder->attempt('krypton', 'session', 'succeeded', 'Session '.$session['status'], $actor, [
+            'customer_id' => $customer->id,
+            'service_id' => $service->id,
+            'username' => $session['username'],
+            'online' => $session['online'],
+        ], $request);
+
+        return back()->with('status', __('ui.customers.radius_checked', ['time' => now()->timezone((string) config('app.timezone'))->format('d/m/Y H:i')]));
+    }
+
+    public function whatsappRenewal(Request $request, Customer $customer, CustomerRecords $records, AccessGate $access, WhatsAppDesk $whatsapp): RedirectResponse
+    {
+        $actor = $this->actor($request, $access);
+        $this->authorizeCustomer($actor, $customer, $records);
+        $end = Subscription::query()->where('customer_id', $customer->id)->where('status', 'active')->orderBy('current_period_end')->value('current_period_end');
+
+        try {
+            $result = $whatsapp->queue($customer, 'renewal', [
+                (string) $customer->name_en,
+                $end ? (string) $end : '',
+            ], $actor);
+        } catch (Throwable) {
+            return back()->withErrors(['whatsapp' => __('ui.whatsapp.failed')]);
+        }
+
+        return $this->whatsappBack($result);
+    }
+
+    private function whatsappBack(string $result): RedirectResponse
+    {
+        return match ($result) {
+            'queued' => back()->with('status', __('ui.whatsapp.sent')),
+            'no_consent' => back()->withErrors(['whatsapp' => __('ui.whatsapp.no_consent')]),
+            default => back()->withErrors(['whatsapp' => __('ui.whatsapp.off')]),
+        };
     }
 
     public function storeNote(Request $request, Customer $customer, CustomerRecords $records, AccessGate $access, AuditLogger $audit): RedirectResponse

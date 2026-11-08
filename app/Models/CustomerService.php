@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\Automations\AutomationDesk;
+use App\Services\Integrations\KryptonRadiusClient;
 use App\Services\Performance\CommissionDesk;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,7 @@ class CustomerService extends Model
     protected $fillable = [
         'customer_id', 'service_type', 'plan_name', 'plan_id', 'speed', 'area_id', 'network_node_id', 'install_date', 'status',
         'monthly_usd', 'radius_username', 'radius_password', 'static_ip', 'mac', 'nas', 'vlan',
+        'radius_remote_status', 'radius_online', 'radius_framed_ip', 'radius_checked_at',
         'ont_serial', 'router_model', 'subscription_id', 'order_id', 'activated_at', 'suspended_at',
         'suspension_reason', 'terminated_at', 'termination_reason',
     ];
@@ -25,6 +27,8 @@ class CustomerService extends Model
             'install_date' => 'date',
             'monthly_usd' => 'decimal:2',
             'radius_password' => 'encrypted',
+            'radius_online' => 'boolean',
+            'radius_checked_at' => 'datetime',
             'activated_at' => 'datetime',
             'suspended_at' => 'datetime',
             'terminated_at' => 'datetime',
@@ -44,6 +48,22 @@ class CustomerService extends Model
                 ]);
             }
         });
+
+        static::saved(function (CustomerService $service): void {
+            $watched = ['radius_username', 'radius_password', 'static_ip', 'mac', 'nas', 'vlan', 'plan_id'];
+
+            if (($service->wasRecentlyCreated || $service->wasChanged($watched)) && filled($service->radius_username)) {
+                app(KryptonRadiusClient::class)->queueUpsert($service);
+            }
+        });
+    }
+
+    /**
+     * @return BelongsTo<Plan, $this>
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
     }
 
     /**

@@ -7,7 +7,9 @@ use App\Http\Middleware\RequestId;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TvTokenGuard;
+use App\Http\Middleware\VerifyErpNextSignature;
 use App\Http\Middleware\VerifyTelephonySignature;
+use App\Http\Middleware\VerifyWhishSignature;
 use App\Services\Observability\ErrorReporter;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -37,6 +39,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'account.security' => EnforceAccountSecurity::class,
             'permission' => EnsurePermission::class,
             'telephony.signature' => VerifyTelephonySignature::class,
+            'erpnext.signature' => VerifyErpNextSignature::class,
+            'whish.signature' => VerifyWhishSignature::class,
         ]);
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('dashboard'));

@@ -1,4 +1,4 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import { Field } from '@/components/form/Field';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -29,6 +29,10 @@ type Service = {
     mac?: string | null;
     nas?: string | null;
     vlan?: string | null;
+    radius_online?: boolean | null;
+    radius_status?: string | null;
+    radius_framed_ip?: string | null;
+    radius_checked_at?: string | null;
     ont_serial?: string | null;
     installed?: { serial: string; mac: string | null }[];
     router_model?: string | null;
@@ -53,6 +57,7 @@ type Customer = {
     longitude: string | null;
     tags: string[];
     notes: string | null;
+    whatsapp_consent?: boolean;
     services: Service[];
 };
 type Note = { id: number; body: string; author: string | null; at: string | null };
@@ -78,6 +83,10 @@ export default function CustomerShow({
     orders = [],
     billing_balance = null,
     billing_invoices = [],
+    can_dial = false,
+    can_check_radius = false,
+    radius_live = false,
+    whatsapp_live = false,
 }: {
     customer: Customer;
     notes: Note[];
@@ -97,6 +106,10 @@ export default function CustomerShow({
     orders?: { id: number; number: string | null; type: string; status: string; sla_due: string | null }[];
     billing_balance?: string | null;
     billing_invoices?: { id: number; number: string | null; type: string; status: string; total: string; lbp: string }[];
+    can_dial?: boolean;
+    can_check_radius?: boolean;
+    radius_live?: boolean;
+    whatsapp_live?: boolean;
 }) {
     const { t, locale } = useI18n();
     const page = usePage<SharedProps>();
@@ -164,7 +177,17 @@ export default function CustomerShow({
                     {tab === 'overview' ? (
                         <section className="card grid gap-3 p-5 md:grid-cols-2">
                             <Fact ltr label={t('customers.phones')} value={customer.phones.join(' · ') || t('customers.hidden')} />
+                            {can_dial && customer.phones[0] ? (
+                                <div className="md:col-span-2">
+                                    <Button type="button" size="sm" onClick={() => router.post('/calls/dial', { phone: customer.phones[0] }, { preserveScroll: true })}>{t('customers.call')}</Button>
+                                </div>
+                            ) : null}
                             <Fact ltr label={t('customers.whatsapp')} value={customer.whatsapp || '—'} />
+                            {whatsapp_live && customer.whatsapp_consent ? (
+                                <div>
+                                    <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/customers/${customer.id}/whatsapp/renewal`, {}, { preserveScroll: true })}>{t('customers.wa_renewal')}</Button>
+                                </div>
+                            ) : null}
                             <Fact ltr label={t('customers.email')} value={customer.email || '—'} />
                             <Fact label={t('customers.landmark')} value={[customer.building, customer.floor, customer.landmark].filter(Boolean).join(' · ') || '—'} />
                             <Fact ltr label={t('customers.pin')} value={customer.latitude && customer.longitude ? `${customer.latitude}, ${customer.longitude}` : '—'} />
@@ -195,9 +218,25 @@ export default function CustomerShow({
                                     <p className="mt-1 text-sm text-muted">{item.plan_name} {item.speed ? `· ${item.speed}` : ''} {item.install_date ? `· ${item.install_date}` : ''}</p>
                                     {can_see_money && item.monthly_usd ? <p className="mt-2 text-sm" dir="ltr">${item.monthly_usd}{item.monthly_lbp ? ` · ${item.monthly_lbp.toLocaleString()} LBP` : ''}</p> : <p className="mt-2 text-sm text-muted">{t('customers.hidden')}</p>}
                                     {item.radius_username !== undefined ? (
-                                        <div className="mt-3 text-sm">
+                                        <div className="mt-3 text-sm" data-testid="radius-panel">
                                             <p className="font-semibold">{t('customers.radius')}</p>
                                             <p dir="ltr">{item.radius_username || '—'} · {item.static_ip || '—'} · {item.mac || '—'} · {item.nas || '—'} · VLAN {item.vlan || '—'}</p>
+                                            <div className="mt-3 rounded-tile border border-line bg-card p-3">
+                                                <p className="font-semibold">{t('customers.radius_session')}</p>
+                                                {radius_live ? (
+                                                    <>
+                                                        <p className="mt-1" dir="ltr">
+                                                            {item.radius_checked_at ? (item.radius_online ? t('customers.radius_online') : t('customers.radius_offline')) : t('customers.radius_unchecked')}
+                                                            {item.radius_status ? ` · ${item.radius_status}` : ''}
+                                                            {item.radius_framed_ip ? ` · ${item.radius_framed_ip}` : ''}
+                                                        </p>
+                                                        {item.radius_checked_at ? <p className="text-xs text-muted" dir="ltr">{t('customers.radius_checked', { time: item.radius_checked_at })}</p> : null}
+                                                        {can_check_radius && item.radius_username ? (
+                                                            <Button type="button" className="mt-2" size="sm" variant="outline" onClick={() => router.post(`/customers/${customer.id}/services/${item.id}/radius`, {}, { preserveScroll: true })}>{t('customers.radius_check')}</Button>
+                                                        ) : null}
+                                                    </>
+                                                ) : <p className="mt-1 text-muted">{t('customers.radius_off')}</p>}
+                                            </div>
                                         </div>
                                     ) : null}
                                     {item.ont_serial !== undefined ? <p className="mt-2 text-sm">{t('customers.ont')}: {item.ont_serial || '—'} · {t('customers.router')}: {item.router_model || '—'}</p> : null}
