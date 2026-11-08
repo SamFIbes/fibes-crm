@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronsLeft } from 'lucide-react';
+import { ChevronsLeft, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { BrandLogo, BrandMark } from '@/components/brand';
 import { spring } from '@/lib/motion';
 import { useI18n } from '@/lib/i18n';
@@ -21,7 +22,17 @@ export function Sidebar({
 }) {
     const page = usePage<SharedProps>();
     const { t, dir } = useI18n();
+    const [desktop, setDesktop] = useState(true);
     const path = page.url.split('?')[0];
+
+    useEffect(() => {
+        const query = window.matchMedia('(min-width: 1024px)');
+        const apply = () => setDesktop(query.matches);
+        apply();
+        query.addEventListener('change', apply);
+
+        return () => query.removeEventListener('change', apply);
+    }, []);
     const allowed = new Set(page.props.auth.nav ?? ['dashboard']);
     const groups = navGroups
         .map((group) => ({ ...group, items: group.items.filter((item) => allowed.has(item.key)) }))
@@ -36,10 +47,10 @@ export function Sidebar({
             </AnimatePresence>
             <motion.aside
                 aria-label={t('a11y.main')}
-                animate={{ width: collapsed ? 76 : 248 }}
+                animate={{ width: desktop ? (collapsed ? 76 : 248) : 288 }}
                 transition={spring}
                 className={cn(
-                    'fixed inset-y-0 start-0 z-50 flex flex-col overflow-hidden bg-side text-side-text lg:translate-x-0 dark:border-e dark:border-line',
+                    'fixed inset-y-0 start-0 z-50 flex max-w-[calc(100vw-3rem)] flex-col overflow-hidden bg-side text-side-text lg:translate-x-0 dark:border-e dark:border-line',
                     mobileOpen ? 'translate-x-0' : 'max-lg:ltr:-translate-x-[110%] max-lg:rtl:translate-x-[110%]',
                 )}
             >
@@ -83,6 +94,9 @@ export function Sidebar({
                         </div>
                     ))}
                 </nav>
+                <button type="button" className="absolute end-2 top-3 grid size-11 place-items-center rounded-full text-side-text lg:hidden" onClick={onClose} aria-label={t('nav.close_menu')}>
+                    <X className="size-5" />
+                </button>
                 <button
                     type="button"
                     onClick={onToggle}

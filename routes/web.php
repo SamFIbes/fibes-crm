@@ -291,6 +291,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/approvals/{approval}/approve', [ApprovalController::class, 'approve'])->middleware('permission:approvals.decide')->name('approvals.approve');
     Route::post('/approvals/{approval}/reject', [ApprovalController::class, 'reject'])->middleware('permission:approvals.decide')->name('approvals.reject');
     Route::get('/billing', [BillingController::class, 'index'])->middleware('permission:invoices.view,invoices.view_balance,billing.view_amounts')->name('billing');
+    Route::get('/billing/lookup', [BillingController::class, 'lookup'])->middleware('permission:invoices.view,payments.record,payments.request')->name('billing.lookup');
     Route::post('/billing/run', [BillingController::class, 'run'])->middleware('permission:invoices.issue')->name('billing.run');
     Route::post('/billing/refunds', [BillingController::class, 'refund'])->middleware('permission:payments.reverse')->name('billing.refunds');
     Route::post('/payments', [PaymentController::class, 'store'])->middleware('permission:payments.record,payments.request')->name('payments.store');

@@ -20,8 +20,8 @@ const buttonVariants = cva(
                 wa: 'bg-wa text-white hover:brightness-105 dark:text-[#052812]',
             },
             size: {
-                default: 'h-[42px] px-[18px] text-sm rounded-full',
-                sm: 'h-[34px] px-3.5 text-xs rounded-full',
+                default: 'h-11 min-h-11 px-[18px] text-sm rounded-full',
+                sm: 'h-11 min-h-11 px-3.5 text-xs rounded-full md:h-[34px] md:min-h-0',
                 md: 'h-9 px-4 text-md rounded-full',
                 lg: 'h-12 px-5 text-base rounded-full',
                 icon: 'size-[42px] rounded-full',

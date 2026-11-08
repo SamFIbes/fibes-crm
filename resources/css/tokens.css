@@ -55,7 +55,7 @@
   --line-2: rgb(16 35 31 / 0.16);
   --text: #10231f;
   --muted: #586a65;
-  --faint: #8a9994;
+  --faint: #4a5c57;
   --accent: #0d5c55;
   --on-accent: #f1fbf7;
   --accent-ink: #0d5c55;
@@ -77,11 +77,11 @@
   --wa: #1fa855;
   --tick: #2b9fe0;
 
-  --good: #1d8656;
+  --good: #0f5c3c;
   --good-bg: #d7efe4;
-  --warn: #b8700f;
+  --warn: #7a4808;
   --warn-bg: #f8ead3;
-  --bad: #cf4429;
+  --bad: #922e18;
   --bad-bg: #f8ddd6;
   --info: #1d5f99;
   --info-bg: #d8e5f6;
@@ -109,7 +109,7 @@ html.dark {
   --line-2: rgb(255 255 255 / 0.15);
   --text: #e5efec;
   --muted: #9db0aa;
-  --faint: #6f817c;
+  --faint: #c5d5d0;
   --accent: #5cd0b4;
   --on-accent: #06201c;
   --accent-ink: #5cd0b4;

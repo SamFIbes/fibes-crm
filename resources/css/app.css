@@ -97,7 +97,7 @@
   html[lang='ar'] { font-family: var(--font-arabic); }
   html.is-dragging, html.is-dragging body { overflow-x: clip; overscroll-behavior: none; }
   html.is-dragging, html.is-dragging * { cursor: grabbing !important; user-select: none; }
-  body {
+  html, body {
     overflow-x: clip;
     background: var(--bg);
     color: var(--text);
@@ -143,6 +143,11 @@
     box-shadow: var(--shadow);
   }
   .icon-btn:hover { background: var(--card-2); }
+  @media (max-width: 480px) {
+    button, select, input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']), textarea {
+      min-height: 44px;
+    }
+  }
   a[href*='wa.me'] {
     display: inline-flex;
     align-items: center;

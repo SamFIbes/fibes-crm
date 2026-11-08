@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\Attention\AttentionDesk;
 use App\Services\Reports\ReportDesk;
 use App\Services\Settings\CommercialSettings;
 use App\Support\Access\AccessGate;
@@ -13,7 +14,7 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request, AccessGate $access, ReportDesk $reports, CommercialSettings $commercial): Response
+    public function index(Request $request, AccessGate $access, ReportDesk $reports, CommercialSettings $commercial, AttentionDesk $attention): Response
     {
         $actor = $access->effective($request);
         abort_unless($actor instanceof User, 403);
@@ -27,6 +28,7 @@ class DashboardController extends Controller
             'from' => $from,
             'to' => $to,
             'refresh' => max(5, (int) $commercial->get('report_refresh_seconds')),
+            'attention' => $attention->for($actor),
         ]);
     }
 

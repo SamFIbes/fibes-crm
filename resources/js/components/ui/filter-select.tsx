@@ -33,7 +33,7 @@ export function FilterSelect({
                 type="button"
                 aria-haspopup="listbox"
                 aria-expanded={open}
-                className="inline-flex h-[42px] items-center gap-2 rounded-full border border-line bg-card px-3.5 text-sm font-semibold shadow-card"
+                className="inline-flex h-11 min-h-11 items-center gap-2 rounded-full border border-line bg-card px-3.5 text-sm font-semibold shadow-card"
                 onClick={() => setOpen((currentOpen) => !currentOpen)}
             >
                 <span className="text-faint">{label}</span>
