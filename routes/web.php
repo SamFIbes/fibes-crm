@@ -23,6 +23,7 @@ use App\Http\Controllers\GeographyController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LocaleController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TechController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TopologyController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -98,6 +100,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/imports/{batch}/undo', [ImportController::class, 'undo'])->middleware('permission:imports.manage')->name('imports.undo');
     Route::post('/exports/customers', [ImportController::class, 'export'])->middleware('permission:customers.view,reports.export')->name('exports.customers');
     Route::get('/automations', [AutomationController::class, 'index'])->middleware('permission:automations.view,automations.manage')->name('automations');
+    Route::get('/topology', [TopologyController::class, 'index'])->middleware('permission:settings.view,settings.manage,automations.view')->name('topology');
     Route::post('/automations', [AutomationController::class, 'store'])->middleware('permission:automations.manage')->name('automations.store');
     Route::post('/automations/pause', [AutomationController::class, 'pause'])->middleware('permission:automations.manage')->name('automations.pause');
     Route::post('/automations/webhooks', [AutomationController::class, 'webhook'])->middleware('permission:automations.manage')->name('automations.webhooks');
@@ -149,6 +152,9 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/contracts/{contract}/sign', [QuoteController::class, 'sign'])->middleware('permission:contracts.manage')->name('contracts.sign');
     Route::post('/contracts/{contract}/scan', [QuoteController::class, 'scan'])->middleware('permission:contracts.manage')->name('contracts.scan');
     Route::get('/contracts/{contract}/print', [QuoteController::class, 'printContract'])->middleware('permission:contracts.manage,contracts.view')->name('contracts.print');
+    Route::get('/settings/integrations', [IntegrationController::class, 'edit'])->middleware('permission:integrations.view,integrations.manage')->name('settings.integrations');
+    Route::put('/settings/integrations', [IntegrationController::class, 'update'])->middleware('permission:integrations.manage')->name('settings.integrations.update');
+    Route::post('/settings/integrations/{integration}/test', [IntegrationController::class, 'test'])->middleware('permission:integrations.manage')->name('settings.integrations.test');
     Route::get('/settings', [SettingsController::class, 'edit'])->middleware('permission:settings.view,settings.manage')->name('settings');
     Route::put('/settings', [SettingsController::class, 'update'])->middleware('permission:settings.manage')->name('settings.update');
     Route::put('/settings/commercial', [SettingsController::class, 'updateCommercial'])->middleware('permission:settings.manage')->name('settings.commercial');
@@ -198,6 +204,8 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::patch('/customers/{customer}', [CustomerController::class, 'update'])->middleware('permission:customers.edit')->name('customers.update');
     Route::post('/customers/{customer}/services', [CustomerController::class, 'storeService'])->middleware('permission:customers.edit,services.technical.edit')->name('customers.services.store');
     Route::post('/customers/{customer}/services/{service}/reveal', [CustomerController::class, 'reveal'])->middleware('permission:services.radius_password.reveal')->name('customers.services.reveal');
+    Route::post('/customers/{customer}/services/{service}/radius', [CustomerController::class, 'radiusSession'])->middleware('permission:services.radius_fields.view,services.radius_fields.edit')->name('customers.services.radius');
+    Route::post('/customers/{customer}/whatsapp/renewal', [CustomerController::class, 'whatsappRenewal'])->middleware('permission:customers.view')->name('customers.whatsapp.renewal');
     Route::post('/customers/{customer}/notes', [CustomerController::class, 'storeNote'])->middleware('permission:customers.edit')->name('customers.notes.store');
     Route::post('/customers/{customer}/files', [CustomerController::class, 'storeFile'])->middleware('permission:attachments.upload')->name('customers.files.store');
     Route::get('/tickets', [TicketController::class, 'index'])->middleware('permission:tickets.view')->name('tickets');
@@ -208,6 +216,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::patch('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->middleware('permission:tickets.view')->name('tickets.status');
     Route::post('/tickets/{ticket}/escalate', [TicketController::class, 'escalate'])->middleware('permission:tickets.escalate')->name('tickets.escalate');
     Route::post('/tickets/{ticket}/messages', [TicketController::class, 'reply'])->middleware('permission:tickets.view')->name('tickets.messages');
+    Route::post('/tickets/{ticket}/whatsapp', [TicketController::class, 'whatsapp'])->middleware('permission:tickets.view')->name('tickets.whatsapp');
     Route::post('/tickets/{ticket}/files', [TicketController::class, 'storeFile'])->middleware('permission:attachments.upload')->name('tickets.files');
     Route::get('/incidents', [IncidentController::class, 'index'])->middleware('permission:incidents.manage')->name('incidents');
     Route::post('/incidents', [IncidentController::class, 'store'])->middleware('permission:incidents.manage')->name('incidents.store');
@@ -234,6 +243,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/calls/leads', [CallController::class, 'storeLead'])->middleware('permission:leads.create')->name('calls.leads');
     Route::post('/calls/duty', [CallController::class, 'duty'])->middleware('permission:calls.log,calls.view')->name('calls.duty');
     Route::post('/calls/extension', [CallController::class, 'extension'])->middleware('permission:calls.log,calls.view')->name('calls.extension');
+    Route::post('/calls/dial', [CallController::class, 'dial'])->middleware('permission:calls.log')->name('calls.dial');
     Route::patch('/calls/customers/{customer}', [CallController::class, 'updateContact'])->middleware('permission:customers.edit')->name('calls.contact');
     Route::get('/dispatch', [DispatchController::class, 'index'])->middleware('permission:jobs.schedule')->name('dispatch');
     Route::post('/dispatch', [DispatchController::class, 'store'])->middleware('permission:jobs.schedule,jobs.request')->name('dispatch.store');
@@ -262,6 +272,8 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/inventory/write-off', [InventoryController::class, 'writeOff'])->middleware('permission:inventory.adjust')->name('inventory.write-off');
     Route::post('/inventory/reservations', [InventoryController::class, 'reserve'])->middleware('permission:inventory.reserve')->name('inventory.reserve');
     Route::post('/inventory/counts', [InventoryController::class, 'count'])->middleware('permission:inventory.view,inventory.move')->name('inventory.count');
+    Route::post('/inventory/issue', [InventoryController::class, 'issue'])->middleware('permission:inventory.move')->name('inventory.issue');
+    Route::post('/inventory/erp-request', [InventoryController::class, 'requestFromErp'])->middleware('permission:inventory.move')->name('inventory.erp');
     Route::get('/network', [NetworkController::class, 'index'])->middleware('permission:services.technical.view,services.technical.edit,coverage.view,jobs.schedule')->name('network');
     Route::post('/network/nodes', [NetworkController::class, 'store'])->middleware('permission:services.technical.edit')->name('network.store');
     Route::post('/tickets/{ticket}/csat', [CsatController::class, 'manual'])->middleware('permission:tickets.view')->name('tickets.csat');
@@ -279,6 +291,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/approvals/{approval}/approve', [ApprovalController::class, 'approve'])->middleware('permission:approvals.decide')->name('approvals.approve');
     Route::post('/approvals/{approval}/reject', [ApprovalController::class, 'reject'])->middleware('permission:approvals.decide')->name('approvals.reject');
     Route::get('/billing', [BillingController::class, 'index'])->middleware('permission:invoices.view,invoices.view_balance,billing.view_amounts')->name('billing');
+    Route::get('/billing/lookup', [BillingController::class, 'lookup'])->middleware('permission:invoices.view,payments.record,payments.request')->name('billing.lookup');
     Route::post('/billing/run', [BillingController::class, 'run'])->middleware('permission:invoices.issue')->name('billing.run');
     Route::post('/billing/refunds', [BillingController::class, 'refund'])->middleware('permission:payments.reverse')->name('billing.refunds');
     Route::post('/payments', [PaymentController::class, 'store'])->middleware('permission:payments.record,payments.request')->name('payments.store');
@@ -303,6 +316,8 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/invoices/{invoice}/credit', [BillingController::class, 'credit'])->middleware('permission:invoices.issue')->name('invoices.credit');
     Route::post('/invoices/{invoice}/void', [BillingController::class, 'void'])->middleware('permission:invoices.issue')->name('invoices.void');
     Route::post('/invoices/{invoice}/write-off', [BillingController::class, 'writeOff'])->middleware('permission:payments.write_off')->name('invoices.write-off');
+    Route::post('/invoices/{invoice}/whish', [BillingController::class, 'whish'])->middleware('permission:payments.record')->name('invoices.whish');
+    Route::post('/invoices/{invoice}/whatsapp', [BillingController::class, 'whatsapp'])->middleware('permission:payments.record')->name('invoices.whatsapp');
     Route::get('/audit', [ModuleController::class, 'audit'])->middleware('permission:audit.view')->name('audit');
 
     Route::middleware('permission:users.view,users.manage')->group(function () {

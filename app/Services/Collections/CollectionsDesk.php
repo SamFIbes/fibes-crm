@@ -9,6 +9,7 @@ use App\Models\CollectionEvent;
 use App\Models\CollectionExemption;
 use App\Models\Customer;
 use App\Models\CustomerService;
+use App\Models\Invoice;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Models\WorkTask;
@@ -17,6 +18,8 @@ use App\Services\Audit\AuditLogger;
 use App\Services\Billing\BillingDesk;
 use App\Services\Billing\Ledger;
 use App\Services\Billing\SubscriptionMachine;
+use App\Services\Integrations\KryptonRadiusClient;
+use App\Services\Integrations\WhatsAppDesk;
 use App\Services\Retention\RetentionDesk;
 use App\Services\Settings\CommercialSettings;
 use Illuminate\Http\Request;
@@ -228,7 +231,7 @@ class CollectionsDesk
         }
 
         $username = (string) (CustomerService::query()->where('customer_id', $customerId)->value('radius_username') ?: 'customer-'.$customerId);
-        $this->radius->reactivate($username);
+        $this->radius->reactivate($username, $customerId, $actor->id);
         $this->markPaid($customerId, $actor);
         $this->audit->record('collection.reactivation_requested', $actor, ['customer_id' => $customerId, 'fee' => $fee], Request::create('/'));
     }
@@ -381,6 +384,16 @@ class CollectionsDesk
     {
         $customer = Customer::query()->find($subscription->customer_id);
         $link = $this->whatsapp($customer, $action);
+        if ($customer instanceof Customer) {
+            $invoice = $case->invoice_id ? Invoice::query()->find($case->invoice_id) : null;
+            $invoiceNumber = $invoice instanceof Invoice ? (string) $invoice->number : '';
+            $amount = $invoice instanceof Invoice ? (string) $invoice->total : '';
+            app(WhatsAppDesk::class)->queue($customer, 'payment', [
+                (string) $customer->name_en,
+                $invoiceNumber,
+                $amount,
+            ], $actor);
+        }
         $notes = $link ?? __('ui.collections.no_whatsapp');
 
         if ($customer instanceof Customer && is_string($customer->email) && $customer->email !== '') {
@@ -420,13 +433,17 @@ class CollectionsDesk
             'suspension_reason' => 'non-payment',
         ]);
         $username = (string) (CustomerService::query()->where('customer_id', $customerId)->value('radius_username') ?: 'customer-'.$customerId);
-        $this->radius->suspend($username);
+        $this->radius->suspend($username, $customerId, $actor->id);
         $this->kryptonTask($customerId, $action, $actor);
         $this->audit->record('collection.suspended', $actor, ['customer_id' => $customerId], Request::create('/'));
     }
 
     private function kryptonTask(int $customerId, string $action, User $actor): void
     {
+        if (app(KryptonRadiusClient::class)->ready() && ! config('fibes.radius.also_task')) {
+            return;
+        }
+
         WorkTask::query()->create([
             'kind' => 'noc_krypton',
             'title' => __('ui.collections.krypton_'.$action),
@@ -534,6 +551,15 @@ class CollectionsDesk
             'action' => 'renewal',
             'created_at' => now(),
         ]);
+        $customer = Customer::query()->find($subscription->customer_id);
+
+        if ($customer instanceof Customer) {
+            app(WhatsAppDesk::class)->queue($customer, 'renewal', [
+                (string) $customer->name_en,
+                $end->toDateString(),
+            ], $actor);
+        }
+
         WorkTask::query()->create([
             'kind' => 'collection',
             'title' => __('ui.collections.renewal_task'),

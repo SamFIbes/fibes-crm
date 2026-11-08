@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
+use App\Services\Integrations\WhatsAppDesk;
 use App\Services\Jobs\FieldWork;
 use App\Services\Settings\SettingsStore;
 use App\Support\Access\AccessGate;
@@ -108,6 +109,14 @@ class TicketRecords
 
         $ticket->status = $status;
         $ticket->save();
+        $ticket->loadMissing('customer');
+
+        if ($ticket->customer instanceof Customer) {
+            app(WhatsAppDesk::class)->queue($ticket->customer, 'ticket', [
+                (string) $ticket->number,
+                $status,
+            ], $actor);
+        }
         $this->audit->record('ticket.status', $actor, [
             'customer_id' => $ticket->customer_id,
             'ticket_id' => $ticket->id,
@@ -157,7 +166,8 @@ class TicketRecords
     public function present(Ticket $ticket, bool $detail = false): array
     {
         $ticket->loadMissing(['customer:id,name_en,name_ar,account_no', 'category', 'assignee:id,name', 'service:id,service_type', 'customer.area', 'tier', 'incident']);
-        $sla = $this->clock->snapshot($ticket);
+        $slaConfigured = $ticket->response_due_at !== null && $ticket->resolve_due_at !== null;
+        $sla = $slaConfigured ? $this->clock->snapshot($ticket) : null;
         $row = [
             'id' => $ticket->id,
             'number' => $ticket->number,
@@ -193,6 +203,7 @@ class TicketRecords
                 'title' => $ticket->incident->title,
             ] : null,
             'sla' => $sla,
+            'sla_configured' => $slaConfigured,
         ];
 
         if ($detail) {

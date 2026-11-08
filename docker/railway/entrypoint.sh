@@ -25,8 +25,22 @@ if [ "${FIBES_RUN_MIGRATIONS:-false}" = "true" ]; then
         i=$((i + 1)); [ "$i" -gt 40 ] && { echo "PostgreSQL did not become ready." >&2; exit 1; }
         sleep 2
     done
-    # Additive only. Seeders are idempotent; the admin is created once from ADMIN_EMAIL / ADMIN_PASSWORD.
-    su -s /bin/sh www-data -c "php artisan migrate --force --no-interaction && php artisan db:seed --force --no-interaction"
+    # Additive only. Role grants and the admin account are not re-seeded here.
+    su -s /bin/sh www-data -c "php artisan migrate --force --no-interaction"
+fi
+
+if [ "${FIBES_RUN_SEED:-}" = "true" ]; then
+    if [ "${FIBES_RUN_MIGRATIONS:-false}" != "true" ]; then
+        echo "Waiting for PostgreSQL..."
+        i=0
+        until php -r 'try { new PDO("pgsql:host=".getenv("DB_HOST").";port=".getenv("DB_PORT").";dbname=".getenv("DB_DATABASE"), getenv("DB_USERNAME"), getenv("DB_PASSWORD")); } catch (Throwable $e) { exit(1); }'; do
+            i=$((i + 1)); [ "$i" -gt 40 ] && { echo "PostgreSQL did not become ready." >&2; exit 1; }
+            sleep 2
+        done
+    fi
+    su -s /bin/sh www-data -c "php artisan db:seed --force --no-interaction"
+else
+    echo "Database seeding skipped (FIBES_RUN_SEED is not true)."
 fi
 
 su -s /bin/sh www-data -c "php artisan config:cache && php artisan route:cache && php artisan view:cache" || true

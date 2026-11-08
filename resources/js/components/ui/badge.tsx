@@ -10,7 +10,7 @@ const tones: Record<Tone, string> = {
     info: 'bg-info-bg text-info',
     violet: 'bg-violet-bg text-violet',
     neutral: 'bg-well text-muted',
-    accent: 'bg-brand-gradient text-navy',
+    accent: 'bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-accent',
 };
 
 export function Badge({ tone = 'neutral', dot, className, children }: { tone?: Tone; dot?: boolean; className?: string; children: ReactNode }) {

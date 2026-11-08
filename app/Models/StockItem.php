@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class StockItem extends Model
 {
     protected $fillable = [
-        'sku', 'name_en', 'name_ar', 'unit', 'serialized', 'reorder_level', 'unit_cost_usd', 'low_stock_alerted',
+        'sku', 'erp_item_code', 'name_en', 'name_ar', 'unit', 'serialized', 'reorder_level', 'unit_cost_usd', 'low_stock_alerted',
     ];
 
     /**

@@ -13,6 +13,8 @@ use App\Models\TicketView;
 use App\Models\User;
 use App\Services\Customers\CustomerRecords;
 use App\Services\Files\FileDesk;
+use App\Services\Integrations\WhatsAppBusinessClient;
+use App\Services\Integrations\WhatsAppDesk;
 use App\Services\Tickets\EscalationLadder;
 use App\Services\Tickets\IncidentRecords;
 use App\Services\Tickets\TicketRecords;
@@ -22,6 +24,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class TicketController extends Controller
 {
@@ -36,6 +39,7 @@ class TicketController extends Controller
             'area_id' => $request->integer('area_id') ?: null,
             'service_type' => (string) $request->string('service_type'),
             'sla' => (string) $request->string('sla'),
+            'queue' => in_array($request->string('queue')->toString(), ['attention', 'latest'], true) ? $request->string('queue')->toString() : 'attention',
             'mine' => $request->boolean('mine'),
             'tier' => $request->integer('tier') ?: null,
             'customer' => $request->integer('customer') ?: null,
@@ -75,8 +79,18 @@ class TicketController extends Controller
             $query->where(fn ($inner) => $inner->where('number', 'like', $term)->orWhere('subject', 'like', $term));
         }
 
+        if ($filters['queue'] === 'attention') {
+            $now = now()->toDateTimeString();
+            $query->orderByRaw(
+                "case when status not in ('resolved', 'closed') and resolve_due_at is not null and resolve_due_at < ? then 0 when status not in ('resolved', 'closed') and first_response_at is null and response_due_at is not null and response_due_at < ? then 1 when status not in ('resolved', 'closed') and assignee_id is null then 2 else 3 end",
+                [$now, $now],
+            )->orderBy('response_due_at');
+        } else {
+            $query->latest();
+        }
+
         return Inertia::render('Tickets/Index', [
-            'tickets' => $query->latest()->limit(200)->get()->map(fn (Ticket $ticket) => $records->present($ticket))->values(),
+            'tickets' => $query->limit(200)->get()->map(fn (Ticket $ticket) => $records->present($ticket))->values(),
             'filters' => $filters,
             'categories' => TicketCategory::query()->where('is_active', true)->orderBy('sort')->get(['id', 'name_en', 'name_ar']),
             'areas' => Area::query()->orderBy('name_en')->get(['id', 'name_en', 'name_ar']),
@@ -181,6 +195,9 @@ class TicketController extends Controller
             'can_move' => $records->canTouch($actor),
             'can_escalate' => $access->allows($actor, 'tickets.escalate'),
             'can_upload' => $access->allows($actor, 'attachments.upload'),
+            'can_whatsapp' => app(WhatsAppBusinessClient::class)->ready()
+                && (bool) $ticket->customer?->whatsapp_consent
+                && filled($ticket->customer?->whatsapp_e164),
         ]);
     }
 
@@ -195,6 +212,33 @@ class TicketController extends Controller
         $records->changeStatus($ticket, $data['status'], $actor, $request);
 
         return back();
+    }
+
+    public function whatsapp(Request $request, Ticket $ticket, TicketRecords $records, AccessGate $access, WhatsAppDesk $whatsapp): RedirectResponse
+    {
+        $actor = $this->actor($request, $access);
+        $this->authorizeTicket($actor, $ticket, $records);
+        $ticket->loadMissing('customer');
+        $customer = $ticket->customer;
+
+        if (! $customer instanceof Customer) {
+            return back()->withErrors(['whatsapp' => __('ui.whatsapp.off')]);
+        }
+
+        try {
+            $result = $whatsapp->queue($customer, 'ticket', [
+                (string) $ticket->number,
+                (string) $ticket->status,
+            ], $actor);
+        } catch (Throwable) {
+            return back()->withErrors(['whatsapp' => __('ui.whatsapp.failed')]);
+        }
+
+        return match ($result) {
+            'queued' => back()->with('status', __('ui.whatsapp.sent')),
+            'no_consent' => back()->withErrors(['whatsapp' => __('ui.whatsapp.no_consent')]),
+            default => back()->withErrors(['whatsapp' => __('ui.whatsapp.off')]),
+        };
     }
 
     public function escalate(Request $request, Ticket $ticket, TicketRecords $records, AccessGate $access): RedirectResponse

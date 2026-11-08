@@ -45,6 +45,10 @@ class AuditLogger
             'recovery_codes',
             'two_factor_secret',
             'two_factor_recovery_codes',
+            'api_key',
+            'api_secret',
+            'authorization',
+            'webhook_secret',
         ];
 
         $clean = [];

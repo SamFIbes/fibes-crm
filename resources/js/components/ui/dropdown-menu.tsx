@@ -12,7 +12,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, ComponentPropsWith
                 ref={ref}
                 sideOffset={sideOffset}
                 className={cn(
-                    'z-50 min-w-56 rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg duration-200',
+                    'z-50 min-w-56 rounded-[18px] border border-line bg-raised p-1.5 text-text shadow-pop duration-200',
                     className,
                 )}
                 {...props}
@@ -28,7 +28,7 @@ export const DropdownMenuItem = forwardRef<HTMLDivElement, ComponentPropsWithout
         <DropdownMenuPrimitive.Item
             ref={ref}
             className={cn(
-                'flex cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none transition-colors duration-150 data-[highlighted]:bg-secondary',
+                'flex cursor-pointer select-none items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold outline-none transition-colors duration-150 data-[highlighted]:bg-well',
                 className,
             )}
             {...props}

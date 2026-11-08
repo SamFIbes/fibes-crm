@@ -1,4 +1,4 @@
-import { AlertTriangle, BarChart3, Boxes, CalendarCheck2, CalendarRange, ClipboardCheck, Coins, CreditCard, FileText, Headset, HeartHandshake, Kanban, LayoutDashboard, ListChecks, Map, MapPinned, Network, Package, Paperclip, ScrollText, Settings, ShieldCheck, Siren, Smartphone, Tags, Ticket, Trophy, Users, Zap, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, BarChart3, Boxes, CalendarCheck2, CalendarRange, ClipboardCheck, Coins, CreditCard, FileText, Headset, HeartHandshake, Kanban, LayoutDashboard, ListChecks, Map, MapPinned, Network, Package, Paperclip, Plug, ScrollText, Settings, ShieldCheck, Siren, Smartphone, Tags, Ticket, Trophy, Users, Waypoints, Zap, type LucideIcon } from 'lucide-react';
 
 export type NavItem = {
     href: string;
@@ -20,6 +20,7 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
             { href: '/performance', key: 'performance', icon: Trophy },
             { href: '/reports', key: 'reports', icon: BarChart3 },
             { href: '/automations', key: 'automations', icon: Zap },
+            { href: '/topology', key: 'topology', icon: Waypoints },
             { href: '/tasks', key: 'tasks', icon: CalendarCheck2 },
             { href: '/approvals', key: 'approvals', icon: ClipboardCheck },
         ],
@@ -50,6 +51,7 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
             { href: '/admin/roles', key: 'roles', icon: ShieldCheck },
             { href: '/audit', key: 'audit', icon: ScrollText },
             { href: '/settings', key: 'settings', icon: Settings },
+            { href: '/settings/integrations', key: 'integrations', icon: Plug },
             { href: '/imports', key: 'imports', icon: FileText },
             { href: '/files', key: 'files', icon: Paperclip },
             { href: '/inventory', key: 'inventory', icon: Boxes },
