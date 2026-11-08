@@ -2,6 +2,7 @@
 @import './fonts.css';
 @import 'tailwindcss';
 @import './tokens.css';
+@import './guest.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
