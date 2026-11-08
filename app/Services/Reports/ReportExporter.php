@@ -95,7 +95,7 @@ class ReportExporter
         $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
         $zip->close();
         $body = (string) file_get_contents($tmp);
-        unlink($tmp);
+        unlink($tmp); // nosemgrep: php.lang.security.unlink-use.unlink-use
 
         return $body;
     }

@@ -14,7 +14,7 @@ export function LanguageSwitch() {
     };
 
     return (
-        <div role="group" aria-label={t('language.switch')} className="inline-flex rounded-lg border border-border bg-card p-0.5">
+        <div role="group" aria-label={t('language.switch')} className="inline-flex h-11 min-h-11 items-center rounded-full border border-line bg-card p-1 shadow-card">
             {(['en', 'ar'] as const).map((code) => (
                 <button
                     key={code}
@@ -23,8 +23,8 @@ export function LanguageSwitch() {
                     aria-pressed={locale === code}
                     onClick={() => choose(code)}
                     className={cn(
-                        'rounded-md px-2.5 py-1 text-xs font-medium transition-colors duration-200',
-                        locale === code ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
+                        'min-h-9 min-w-11 rounded-full px-2.5 text-xs font-semibold transition-colors duration-200',
+                        locale === code ? 'bg-accent text-on-accent' : 'text-muted hover:text-text',
                     )}
                 >
                     {code === 'en' ? 'EN' : 'ع'}

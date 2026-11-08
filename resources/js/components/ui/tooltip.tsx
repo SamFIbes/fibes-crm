@@ -7,7 +7,7 @@ export function Tooltip({ label, children }: { label: string; children: ReactNod
             <TooltipPrimitive.Root>
                 <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
                 <TooltipPrimitive.Portal>
-                    <TooltipPrimitive.Content sideOffset={6} className="z-50 rounded-md bg-navy px-2 py-1 text-2xs font-medium text-white shadow-pop">
+                    <TooltipPrimitive.Content sideOffset={6} className="z-50 rounded-xl bg-side px-2.5 py-1.5 text-xs font-semibold text-side-text shadow-pop">
                         {label}
                     </TooltipPrimitive.Content>
                 </TooltipPrimitive.Portal>

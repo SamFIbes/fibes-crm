@@ -176,7 +176,7 @@ export function CommandPalette() {
                     setQuery('');
                     setOpen(true);
                 }}
-                className="inline-flex h-10 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground transition-colors duration-200 hover:border-ring/50"
+                className="inline-flex h-[46px] w-full max-w-[460px] items-center gap-2.5 rounded-full border border-line bg-card px-4 text-sm font-medium text-muted shadow-card transition-colors duration-200 hover:border-line-2"
             >
                 <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span className="flex-1 truncate text-start">{t('command.placeholder')}</span>

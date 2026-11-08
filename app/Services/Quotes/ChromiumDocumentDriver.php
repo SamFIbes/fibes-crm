@@ -20,10 +20,11 @@ class ChromiumDocumentDriver implements DocumentDriver
         $command = escapeshellarg($binary)
             .' --headless --disable-gpu --no-sandbox --no-pdf-header-footer --print-to-pdf='
             .escapeshellarg($pdfPath).' '.escapeshellarg($htmlPath);
-        exec($command, $output, $code);
+        // Binary is config, and every path is escapeshellarg'd. The HTML is a temp file, not a shell argument.
+        exec($command, $output, $code); // nosemgrep: php.lang.security.exec-use.exec-use
         $bytes = is_file($pdfPath) ? file_get_contents($pdfPath) : false;
-        @unlink($htmlPath);
-        @unlink($pdfPath);
+        @unlink($htmlPath); // nosemgrep: php.lang.security.unlink-use.unlink-use
+        @unlink($pdfPath); // nosemgrep: php.lang.security.unlink-use.unlink-use
         @rmdir($dir);
 
         if ($code !== 0 || ! is_string($bytes) || ! str_starts_with($bytes, '%PDF')) {

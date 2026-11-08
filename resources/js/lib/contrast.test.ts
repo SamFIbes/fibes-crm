@@ -3,8 +3,10 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 function parseBlock(css: string, selector: string): Record<string, string> {
-    const match = css.match(new RegExp(`${selector}\\s*\\{([\\s\\S]*?)\\n\\}`));
-    const body = match?.[1] ?? '';
+    const marker = `${selector} {`;
+    const start = css.indexOf(marker);
+    const end = start === -1 ? -1 : css.indexOf('\n}', start);
+    const body = start === -1 || end === -1 ? '' : css.slice(start + marker.length, end);
     const colors: Record<string, string> = {};
 
     for (const entry of body.matchAll(/--([a-z0-9-]+):\s*(#[0-9a-fA-F]{6})/g)) {
@@ -44,15 +46,18 @@ function contrast(a: string, b: string): number {
 describe('brand contrast', () => {
     const css = readFileSync(resolve(process.cwd(), 'resources/css/tokens.css'), 'utf8');
     const light = parseBlock(css, ':root');
-    const dark = parseBlock(css, 'html\\.dark');
+    const dark = parseBlock(css, 'html.dark');
 
-    it('keeps the navy and mint brand colours', () => {
-        expect(light['brand-navy']).toBe('#0e0f2d');
-        expect(light['brand-mint']).toBe('#66c48f');
-        expect(light.text).toBe('#0e0f2d');
-        expect(dark.bg).toBe('#090a22');
-        expect(dark.accent).toBe('#66c48f');
-        expect(hex(rgb('#0e0f2d'))).toBe('#0e0f2d');
+    it('uses the fibes.net palette', () => {
+        expect(light.bg).toBe('#f2f6f7');
+        expect(light.text).toBe('#132530');
+        expect(light.accent).toBe('#1fd17a');
+        expect(light.side).toBe('#06131a');
+        expect(light['side-pill']).toBe('#1fd17a');
+        expect(dark.bg).toBe('#08141b');
+        expect(dark.accent).toBe('#1fd17a');
+        expect(dark.side).toBe('#06131a');
+        expect(hex(rgb('#132530'))).toBe('#132530');
     });
 
     it('meets WCAG AA for text on light surfaces', () => {
@@ -72,7 +77,7 @@ describe('brand contrast', () => {
         expect(contrast(dark.muted, dark.bg)).toBeGreaterThanOrEqual(4.5);
         expect(contrast(dark.muted, dark.card)).toBeGreaterThanOrEqual(4.5);
         expect(contrast(dark['on-accent'], dark.accent)).toBeGreaterThanOrEqual(4.5);
-        expect(contrast('#0e0f2d', dark.bad)).toBeGreaterThanOrEqual(4.5);
+        expect(contrast('#04241a', dark.bad)).toBeGreaterThanOrEqual(4.5);
         expect(contrast(dark['side-text'] ?? light['side-text'], dark.side)).toBeGreaterThanOrEqual(4.5);
         expect(contrast(dark.ring, dark.bg)).toBeGreaterThanOrEqual(3);
     });

@@ -174,7 +174,7 @@ class DocumentHtml
     private function shell(string $locale, string $dir, string $title, string $body): string
     {
         $font = e(url('/fonts/arabic-400.woff2'));
-        $logo = e(url('/brand/logo-compact-on-light.png'));
+        $logo = e(url('/brand/fibes-icon.png'));
 
         return <<<HTML
 <!DOCTYPE html>
