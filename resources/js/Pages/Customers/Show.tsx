@@ -151,7 +151,7 @@ export default function CustomerShow({
         <AppShell>
             <Head title={name} />
             <div data-testid="customer-360">
-                <p className="text-xs text-faint"><Link href="/customers">{t('customers.title')}</Link> · <span dir="ltr">{customer.account_no}</span></p>
+                <p className="text-xs text-muted"><Link href="/customers">{t('customers.title')}</Link> · <span dir="ltr">{customer.account_no}</span></p>
                 <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
                     <div>
                         <h1 className="text-display font-semibold tracking-tight">{name}</h1>
@@ -166,9 +166,15 @@ export default function CustomerShow({
                 ))}
                 {page.props.flash.status ? <p className="mt-3 rounded-tile bg-card px-3 py-2 text-sm ring-1 ring-line">{page.props.flash.status}</p> : null}
                 {page.props.auth.abilities?.tasks_create ? <div className="mt-3"><QuickTask customerId={customer.id} /></div> : null}
+                <section className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" data-testid="subscriber-context">
+                    <ContextFact label={t('customers.services')} value={customer.services.length === 0 ? t('customers.not_on_file') : String(customer.services.length)} />
+                    <ContextFact label={t('customers.open_tickets')} value={String(tickets.filter((item) => !['resolved', 'closed'].includes(item.status)).length)} />
+                    <ContextFact label={t('customers.ledger_balance')} value={billing_balance === null ? t('billing.hidden') : `$${billing_balance}`} ltr={billing_balance !== null} />
+                    <ContextFact label={t('customers.area')} value={area || t('customers.not_on_file')} />
+                </section>
                 <div className="mt-4 flex flex-wrap gap-2" role="tablist">
                     {tabs.map((item) => (
-                        <button key={item} type="button" role="tab" aria-selected={tab === item} data-testid={`tab-${item}`} className={tab === item ? 'rounded-full bg-navy px-3 py-1 text-sm text-white' : 'rounded-full bg-card px-3 py-1 text-sm ring-1 ring-line'} onClick={() => setTab(item)}>
+                        <button key={item} type="button" role="tab" aria-selected={tab === item} data-testid={`tab-${item}`} className={tab === item ? 'min-h-11 rounded-full bg-accent px-3 text-sm text-on-accent' : 'min-h-11 rounded-full bg-card px-3 text-sm ring-1 ring-line'} onClick={() => setTab(item)}>
                             {t(`customers.${item}`)}
                         </button>
                     ))}
@@ -176,7 +182,7 @@ export default function CustomerShow({
                 <div className="mt-4">
                     {tab === 'overview' ? (
                         <section className="card grid gap-3 p-5 md:grid-cols-2">
-                            <Fact ltr label={t('customers.phones')} value={customer.phones.join(' · ') || t('customers.hidden')} />
+                            <Fact ltr label={t('customers.phones')} value={customer.email === undefined && customer.phones.length === 0 ? t('customers.hidden') : (customer.phones.join(' · ') || t('customers.not_on_file'))} />
                             {can_dial && customer.phones[0] ? (
                                 <div className="md:col-span-2">
                                     <Button type="button" size="sm" onClick={() => router.post('/calls/dial', { phone: customer.phones[0] }, { preserveScroll: true })}>{t('customers.call')}</Button>
@@ -369,6 +375,15 @@ export default function CustomerShow({
                 </div>
             </div>
         </AppShell>
+    );
+}
+
+function ContextFact({ label, value, ltr }: { label: string; value: string; ltr?: boolean }) {
+    return (
+        <div className="card p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{label}</p>
+            <p className="mt-1 text-sm font-semibold" dir={ltr ? 'ltr' : undefined}>{value}</p>
+        </div>
     );
 }
 

@@ -57,7 +57,7 @@ it('gives warehouse settings and nothing from the customer workspace', function 
 });
 
 it('serves the official logo files and not the old drawn mark', function () {
-    expect(is_file(public_path('brand/logo-full-on-dark.png')))->toBeTrue()
+    expect(is_file(public_path('brand/fibes-icon.png')))->toBeTrue()
         ->and(is_file(public_path('brand/logo-compact-on-dark.png')))->toBeTrue()
         ->and(is_file(public_path('brand/favicon.ico')))->toBeTrue()
         ->and(is_file(public_path('brand/mark.svg')))->toBeFalse();

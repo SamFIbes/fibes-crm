@@ -39,6 +39,7 @@ class TicketController extends Controller
             'area_id' => $request->integer('area_id') ?: null,
             'service_type' => (string) $request->string('service_type'),
             'sla' => (string) $request->string('sla'),
+            'queue' => in_array($request->string('queue')->toString(), ['attention', 'latest'], true) ? $request->string('queue')->toString() : 'attention',
             'mine' => $request->boolean('mine'),
             'tier' => $request->integer('tier') ?: null,
             'customer' => $request->integer('customer') ?: null,
@@ -78,8 +79,18 @@ class TicketController extends Controller
             $query->where(fn ($inner) => $inner->where('number', 'like', $term)->orWhere('subject', 'like', $term));
         }
 
+        if ($filters['queue'] === 'attention') {
+            $now = now()->toDateTimeString();
+            $query->orderByRaw(
+                "case when status not in ('resolved', 'closed') and resolve_due_at is not null and resolve_due_at < ? then 0 when status not in ('resolved', 'closed') and first_response_at is null and response_due_at is not null and response_due_at < ? then 1 when status not in ('resolved', 'closed') and assignee_id is null then 2 else 3 end",
+                [$now, $now],
+            )->orderBy('response_due_at');
+        } else {
+            $query->latest();
+        }
+
         return Inertia::render('Tickets/Index', [
-            'tickets' => $query->latest()->limit(200)->get()->map(fn (Ticket $ticket) => $records->present($ticket))->values(),
+            'tickets' => $query->limit(200)->get()->map(fn (Ticket $ticket) => $records->present($ticket))->values(),
             'filters' => $filters,
             'categories' => TicketCategory::query()->where('is_active', true)->orderBy('sort')->get(['id', 'name_en', 'name_ar']),
             'areas' => Area::query()->orderBy('name_en')->get(['id', 'name_en', 'name_ar']),

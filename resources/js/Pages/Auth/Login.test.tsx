@@ -133,7 +133,7 @@ describe('sign-in screen', () => {
 
         const logos = screen.getAllByTestId('brand-logo');
         expect(logos[0]).toHaveAttribute('dir', 'ltr');
-        expect(logos[0].querySelector('img')).toHaveAttribute('src', '/brand/logo-full-on-dark.png');
+        expect(logos[0].querySelector('img')).toHaveAttribute('src', '/brand/fibes-icon.png');
 
         await user.type(email, 'ada@fibes.test');
         await user.type(password, 'secret-pass');

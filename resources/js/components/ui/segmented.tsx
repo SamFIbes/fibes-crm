@@ -20,7 +20,7 @@ export function Segmented<T extends string>({
     const reduce = useReducedMotion();
 
     return (
-        <div role="tablist" className={cn('inline-flex rounded-[12px] border border-line bg-well p-0.5', className)}>
+        <div role="tablist" className={cn('inline-flex rounded-full bg-well p-0.5', className)}>
             {options.map((option) => {
                 const active = option.value === value;
 

@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Billing\BillingDesk;
+use App\Services\Customers\CustomerRecords;
 use App\Services\Integrations\IntegrationSettings;
 use App\Services\Integrations\WhatsAppBusinessClient;
 use App\Services\Integrations\WhatsAppDesk;
@@ -18,6 +19,7 @@ use App\Services\Quotes\DocumentDriver;
 use App\Services\Quotes\DocumentHtml;
 use App\Services\Settings\CommercialSettings;
 use App\Support\Access\AccessGate;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -67,6 +69,37 @@ class BillingController extends Controller
                 'counted' => $session->counted === null ? null : (string) $session->counted,
             ] : null,
         ]);
+    }
+
+    public function lookup(Request $request, CustomerRecords $customers, AccessGate $access): JsonResponse
+    {
+        $actor = $access->effective($request);
+        abort_unless($actor instanceof User, 403);
+        $term = trim((string) $request->string('q'));
+
+        if (mb_strlen($term) < 2) {
+            return response()->json([]);
+        }
+
+        $digits = preg_replace('/\D+/', '', $term) ?? '';
+        $like = '%'.$term.'%';
+        $rows = $customers->query($actor)
+            ->where(function ($inner) use ($like, $digits): void {
+                $inner->where('name_en', 'like', $like)->orWhere('name_ar', 'like', $like)->orWhere('account_no', 'like', $like);
+                if ($digits !== '') {
+                    $inner->orWhereHas('phones', fn ($phones) => $phones->where('phone_e164', 'like', '%'.$digits.'%'));
+                }
+            })
+            ->limit(8)
+            ->get(['id', 'name_en', 'name_ar', 'account_no'])
+            ->map(fn (Customer $customer) => [
+                'id' => $customer->id,
+                'name_en' => $customer->name_en,
+                'name_ar' => $customer->name_ar,
+                'account_no' => $customer->account_no,
+            ]);
+
+        return response()->json($rows);
     }
 
     public function run(Request $request, AccessGate $access, BillingDesk $billing): RedirectResponse
@@ -200,6 +233,8 @@ class BillingController extends Controller
             'total' => $seeAmounts ? (string) $invoice->total : null,
             'lbp' => $seeAmounts ? (string) $invoice->lbp_total : null,
             'tax' => $seeAmounts ? (string) $invoice->tax : null,
+            'currency' => $invoice->currency,
+            'exchange_rate' => $seeAmounts && (float) $invoice->exchange_rate > 0 ? (string) $invoice->exchange_rate : null,
             'customer_id' => $invoice->customer_id,
             'whish_url' => $invoice->whish_url,
             'whatsapp_consent' => (bool) $invoice->customer?->whatsapp_consent && filled($invoice->customer?->whatsapp_e164),
