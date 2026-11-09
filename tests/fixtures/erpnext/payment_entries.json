@@ -1,0 +1,28 @@
+[
+  {
+    "name": "ACC-PAY-SYNTH-001",
+    "party": "CUST-SYNTH-001",
+    "party_type": "Customer",
+    "posting_date": "2026-11-02",
+    "paid_amount": 29.0,
+    "received_amount": 29.0,
+    "mode_of_payment": "Bank Transfer",
+    "status": "Submitted",
+    "docstatus": 1,
+    "modified": "2026-11-02 12:00:00",
+    "company": "Smart Network"
+  },
+  {
+    "name": "ACC-PAY-SYNTH-002",
+    "party": "CUST-SYNTH-002",
+    "party_type": "Customer",
+    "posting_date": "2026-11-03",
+    "paid_amount": 15.5,
+    "received_amount": 15.5,
+    "mode_of_payment": "Cash",
+    "status": "Submitted",
+    "docstatus": 1,
+    "modified": "2026-11-03 09:00:00",
+    "company": "Smart Network"
+  }
+]

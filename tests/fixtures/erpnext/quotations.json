@@ -1,0 +1,13 @@
+[
+  {
+    "name": "SAL-QTN-SYNTH-001",
+    "customer_name": "Acme Fiber Test",
+    "party_name": "CUST-SYNTH-001",
+    "contact_email": "billing@acme-fiber.test",
+    "currency": "USD",
+    "grand_total": 120.00,
+    "status": "Open",
+    "valid_till": "2026-12-01",
+    "modified": "2026-11-04 12:00:00"
+  }
+]

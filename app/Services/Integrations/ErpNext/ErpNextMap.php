@@ -52,6 +52,19 @@ class ErpNextMap
     public const MATERIAL_REQUEST_FIELDS = ['name', 'title', 'status', 'material_request_type', 'transaction_date', 'schedule_date'];
 
     /** @var list<string> */
+
+    /** @var list<string> */
+    public const CUSTOMER_FIELDS = ['name', 'customer_name', 'customer_type', 'customer_group', 'territory', 'mobile_no', 'email_id', 'tax_id', 'disabled', 'modified'];
+
+    /** @var list<string> */
+    public const LEAD_FIELDS = ['name', 'lead_name', 'first_name', 'last_name', 'email_id', 'mobile_no', 'phone', 'status', 'company_name', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'modified'];
+
+    /** @var list<string> */
+    public const QUOTATION_FIELDS = ['name', 'customer_name', 'party_name', 'currency', 'grand_total', 'status', 'valid_till', 'modified'];
+
+    /** @var list<string> */
+    public const SALES_INVOICE_FIELDS = ['name', 'customer', 'customer_name', 'currency', 'grand_total', 'status', 'docstatus', 'is_return', 'posting_date', 'modified'];
+
     public const ASSET_FIELDS = ['name', 'asset_name', 'item_code', 'status', 'location', 'company'];
 
     /** @var list<string> */
