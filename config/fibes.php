@@ -228,11 +228,13 @@ return [
 
     'erpnext' => [
         'enabled' => (bool) env('FIBES_ERPNEXT_ENABLED', false),
-        'url' => env('FIBES_ERPNEXT_URL', 'https://erp.thehubholding.com'),
-        'api_key' => env('FIBES_ERPNEXT_API_KEY'),
-        'api_secret' => env('FIBES_ERPNEXT_API_SECRET'),
+        // Prefer the dedicated CRM API user (ERPNEXT_*), fall back to the stock integration vars.
+        'url' => env('ERPNEXT_URL', env('FIBES_ERPNEXT_URL', 'https://erp.thehubholding.com')),
+        'api_key' => env('ERPNEXT_API_KEY', env('FIBES_ERPNEXT_API_KEY')),
+        'api_secret' => env('ERPNEXT_API_SECRET', env('FIBES_ERPNEXT_API_SECRET')),
         'webhook_secret' => env('FIBES_ERPNEXT_WEBHOOK_SECRET'),
         'company' => env('FIBES_ERPNEXT_COMPANY', 'Smart Network'),
+        'crm_apply' => (bool) env('FIBES_ERPNEXT_CRM_APPLY', false),
     ],
 
     'attachments' => [
