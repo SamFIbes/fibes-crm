@@ -23,7 +23,52 @@ final class ErpNextCrmMapper
                 : 'active',
             'company_name' => $doc['company_name'] ?? null,
             'erp_name' => $doc['name'] ?? null,
+            'building' => $doc['building'] ?? null,
+            'floor' => $doc['floor'] ?? null,
+            'landmark' => $doc['landmark'] ?? null,
         ];
+    }
+
+    public static function mapContact(array $doc): array
+    {
+        return [
+            'erp_name' => $doc['name'] ?? null,
+            'name' => $doc['full_name'] ?? ($doc['first_name'] ?? ($doc['name'] ?? null)),
+            'phone_e164' => self::phone($doc['mobile_no'] ?? ($doc['phone'] ?? null)),
+            'email' => $doc['email_id'] ?? null,
+            'modified' => $doc['modified'] ?? null,
+        ];
+    }
+
+    public static function mapAddress(array $doc): array
+    {
+        return [
+            'erp_name' => $doc['name'] ?? null,
+            'building' => $doc['address_line1'] ?? ($doc['building'] ?? null),
+            'floor' => $doc['address_line2'] ?? ($doc['floor'] ?? null),
+            'landmark' => $doc['city'] ?? ($doc['landmark'] ?? null),
+            'modified' => $doc['modified'] ?? null,
+        ];
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $contacts
+     * @param  list<array<string, mixed>>  $addresses
+     * @return array<string, mixed>
+     */
+    public static function mapCustomerBundle(array $customerDoc, array $contacts = [], array $addresses = []): array
+    {
+        $mapped = self::mapCustomer($customerDoc);
+        $mapped['contacts'] = array_map(self::mapContact(...), $contacts);
+        $mapped['addresses'] = array_map(self::mapAddress(...), $addresses);
+
+        if (($mapped['building'] ?? null) === null && $mapped['addresses'] !== []) {
+            $mapped['building'] = $mapped['addresses'][0]['building'] ?? null;
+            $mapped['floor'] = $mapped['addresses'][0]['floor'] ?? null;
+            $mapped['landmark'] = $mapped['addresses'][0]['landmark'] ?? null;
+        }
+
+        return $mapped;
     }
 
     public static function mapLead(array $doc): array
@@ -101,7 +146,7 @@ final class ErpNextCrmMapper
 
         $phone = (string) $value;
 
-        return str_starts_with($phone, '+') || !ctype_digit($phone) ? $phone : '+' . $phone;
+        return str_starts_with($phone, '+') || ! ctype_digit($phone) ? $phone : '+'.$phone;
     }
 
     private static function quotationStatus(array $doc): string
@@ -117,7 +162,7 @@ final class ErpNextCrmMapper
 
     private static function canonicalize(mixed $value): mixed
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return $value;
         }
 

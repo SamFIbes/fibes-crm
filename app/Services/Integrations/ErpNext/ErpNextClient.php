@@ -26,7 +26,7 @@ class ErpNextClient
      */
     public function ping(): array
     {
-        return $this->send('GET', '/api/method/frappe.ping');
+        return $this->sendWithRetry('GET', '/api/method/frappe.ping');
     }
 
     /**
@@ -38,6 +38,15 @@ class ErpNextClient
         $pong = ($body['message'] ?? null) === 'pong';
 
         return ['ok' => $pong, 'message' => $pong ? 'pong' : 'unexpected'];
+    }
+
+    public function getCount(string $doctype): int
+    {
+        $payload = $this->sendWithRetry('GET', '/api/method/frappe.client.get_count', [
+            'doctype' => $doctype,
+        ]);
+
+        return (int) ($payload['message'] ?? 0);
     }
 
     /**
@@ -85,7 +94,7 @@ class ErpNextClient
             unset($document[$field]);
         }
 
-        return $this->send('POST', $this->resource('Material Request'), $document);
+        return $this->sendWithRetry('POST', $this->resource('Material Request'), $document);
     }
 
     /**
@@ -93,7 +102,7 @@ class ErpNextClient
      */
     public function getMaterialRequest(string $name): array
     {
-        return $this->send('GET', $this->resource('Material Request', $name));
+        return $this->sendWithRetry('GET', $this->resource('Material Request', $name));
     }
 
     /**
@@ -101,7 +110,7 @@ class ErpNextClient
      */
     public function getStockEntry(string $name): array
     {
-        return $this->send('GET', $this->resource('Stock Entry', $name));
+        return $this->sendWithRetry('GET', $this->resource('Stock Entry', $name));
     }
 
     /**
@@ -110,17 +119,13 @@ class ErpNextClient
      */
     private function listResource(string $doctype, array $fields, int $limit, int $start): array
     {
-        return $this->send('GET', $this->resource($doctype), [
+        return $this->sendWithRetry('GET', $this->resource($doctype), [
             'limit_page_length' => max(1, min(100, $limit)),
             'limit_start' => max(0, $start),
             'fields' => json_encode($fields),
         ]);
     }
 
-    /**
-     * @param  array<string, mixed>|null  $body
-     * @return array<string, mixed>
-     */
     /**
      * List documents modified on or after $modifiedSince (inclusive), ordered by modified asc.
      *
@@ -140,7 +145,7 @@ class ErpNextClient
             $query['filters'] = json_encode([[$doctype, 'modified', '>=', $modifiedSince]]);
         }
 
-        $payload = $this->send('GET', $this->resource($doctype), $query);
+        $payload = $this->sendWithRetry('GET', $this->resource($doctype), $query);
         $data = $payload['data'] ?? [];
 
         return is_array($data) ? array_values(array_filter($data, 'is_array')) : [];
@@ -151,10 +156,60 @@ class ErpNextClient
      */
     public function getDocument(string $doctype, string $name): array
     {
-        $payload = $this->send('GET', $this->resource($doctype, $name));
+        $payload = $this->sendWithRetry('GET', $this->resource($doctype, $name));
         $data = $payload['data'] ?? [];
 
         return is_array($data) ? $data : [];
+    }
+
+    /**
+     * Contacts or addresses linked to a Customer via Dynamic Link.
+     *
+     * @param  list<string>  $fields
+     * @return list<array<string, mixed>>
+     */
+    public function listLinkedToCustomer(string $doctype, string $customerErpName, array $fields = ['name', 'modified'], int $limit = 100): array
+    {
+        $this->assertName($doctype);
+        $this->assertName($customerErpName);
+
+        $payload = $this->sendWithRetry('GET', $this->resource($doctype), [
+            'limit_page_length' => max(1, min(100, $limit)),
+            'fields' => json_encode(array_values(array_unique([...$fields, 'name', 'modified']))),
+            'filters' => json_encode([
+                ['Dynamic Link', 'link_doctype', '=', 'Customer'],
+                ['Dynamic Link', 'link_name', '=', $customerErpName],
+            ]),
+        ]);
+
+        $data = $payload['data'] ?? [];
+
+        return is_array($data) ? array_values(array_filter($data, 'is_array')) : [];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $body
+     * @return array<string, mixed>
+     */
+    public function sendWithRetry(string $method, string $path, ?array $body = null): array
+    {
+        $delays = [1, 2, 4];
+        $attempt = 0;
+
+        while (true) {
+            try {
+                return $this->send($method, $path, $body);
+            } catch (ErpNextHttpException $exception) {
+                if (! $exception->isRetryable() || $attempt >= count($delays)) {
+                    throw $exception;
+                }
+
+                if (! app()->environment('testing')) {
+                    sleep($delays[$attempt]);
+                }
+                $attempt++;
+            }
+        }
     }
 
     /**
@@ -207,10 +262,11 @@ class ErpNextClient
         $secret = (string) config('fibes.erpnext.api_secret');
 
         return Http::baseUrl($this->baseUrl())
-            ->timeout(15)
+            ->timeout(30)
             ->acceptJson()
             ->withHeaders([
                 'Authorization' => 'token '.$key.':'.$secret,
+                'User-Agent' => 'Mozilla/5.0 (compatible; FIBES-CRM/1.0; +https://fibes.io)',
             ]);
     }
 
