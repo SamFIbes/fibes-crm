@@ -4,7 +4,7 @@
 
 Added a read-only ERPNext Sales Invoice and Payment Entry pull into additive mirror tables (`erp_sales_invoices`, `erp_payment_entries`), linked to customers by `erp_name`. Dry-run stays the default; writes need `FIBES_ERPNEXT_CRM_APPLY=true`. Stacks on the live Customer pull.
 
-Pull request: https://github.com/SamFIbes/fibes-crm/pull/PR_NUMBER_PLACEHOLDER
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/16
 
 ## 2026-11-09
 
