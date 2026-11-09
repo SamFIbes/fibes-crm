@@ -1,0 +1,26 @@
+[
+  {
+    "name": "ACC-SINV-SYNTH-001",
+    "customer": "CUST-SYNTH-001",
+    "customer_name": "Acme Fiber Test",
+    "currency": "USD",
+    "grand_total": 49.00,
+    "status": "Paid",
+    "docstatus": 1,
+    "is_return": 0,
+    "posting_date": "2026-11-01",
+    "modified": "2026-11-05 08:00:00"
+  },
+  {
+    "name": "ACC-SINV-SYNTH-002",
+    "customer": "CUST-SYNTH-002",
+    "customer_name": "Nour Sample Residential",
+    "currency": "USD",
+    "grand_total": 10.00,
+    "status": "Unpaid",
+    "docstatus": 1,
+    "is_return": 0,
+    "posting_date": "2026-11-06",
+    "modified": "2026-11-06 08:00:00"
+  }
+]

@@ -121,6 +121,46 @@ class ErpNextClient
      * @param  array<string, mixed>|null  $body
      * @return array<string, mixed>
      */
+    /**
+     * List documents modified on or after $modifiedSince (inclusive), ordered by modified asc.
+     *
+     * @param  list<string>  $fields
+     * @return list<array<string, mixed>>
+     */
+    public function listModified(string $doctype, array $fields, ?string $modifiedSince = null, int $limit = 100, int $start = 0): array
+    {
+        $query = [
+            'limit_page_length' => max(1, min(100, $limit)),
+            'limit_start' => max(0, $start),
+            'fields' => json_encode(array_values(array_unique([...$fields, 'name', 'modified']))),
+            'order_by' => 'modified asc',
+        ];
+
+        if ($modifiedSince !== null && $modifiedSince !== '') {
+            $query['filters'] = json_encode([[$doctype, 'modified', '>=', $modifiedSince]]);
+        }
+
+        $payload = $this->send('GET', $this->resource($doctype), $query);
+        $data = $payload['data'] ?? [];
+
+        return is_array($data) ? array_values(array_filter($data, 'is_array')) : [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getDocument(string $doctype, string $name): array
+    {
+        $payload = $this->send('GET', $this->resource($doctype, $name));
+        $data = $payload['data'] ?? [];
+
+        return is_array($data) ? $data : [];
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $body
+     * @return array<string, mixed>
+     */
     private function send(string $method, string $path, ?array $body = null): array
     {
         if (! $this->ready()) {
@@ -132,9 +172,27 @@ class ErpNextClient
             ? $pending->asJson()->post($path, $body ?? [])
             : $pending->get($path, $body ?? []);
 
+        $status = $response->status();
+
+        if (in_array($status, [401, 403, 429], true) || $status >= 500) {
+            throw ErpNextHttpException::fromStatus(
+                $status,
+                $this->settings->redact((string) $response->body()),
+            );
+        }
+
         try {
             $response->throw();
         } catch (RequestException $exception) {
+            $code = $exception->response?->status() ?? 0;
+
+            if (in_array($code, [401, 403, 429], true) || $code >= 500) {
+                throw ErpNextHttpException::fromStatus(
+                    $code,
+                    $this->settings->redact($exception->getMessage()),
+                );
+            }
+
             throw new RuntimeException($this->settings->redact($exception->getMessage()), 0, $exception);
         }
 

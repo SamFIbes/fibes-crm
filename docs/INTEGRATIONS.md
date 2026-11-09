@@ -35,6 +35,12 @@ Outbound calls run on the queue. Retries use the webhook attempt count and pause
 
 On Stock, **Request from ERP** is disabled, with the reason, until the flag and the key exist. Issuing stock can record a customer, a base station, a field job, or an expense on the movement even while ERP writes stay off.
 
+
+
+## CRM sync (dry run)
+
+PR A adds `erp_links` and `customers.erp_name`, plus `php artisan erpnext:crm-sync --fixture=tests/fixtures/erpnext`. That command maps synthetic fixtures only and never writes customers, leads, quotes, or invoices. Live Customer / Sales Invoice pull waits on a dedicated Hub API user (`ERPNEXT_API_KEY` / `ERPNEXT_API_SECRET`, falling back to `FIBES_ERPNEXT_*`). Apply mode stays off (`FIBES_ERPNEXT_CRM_APPLY=false`).
+
 ## The others
 
 Each of these stays on the behaviour below until its environment flag, its secret, its base URL where one is required, and the desk switch are all on. Test connection makes a real safe ping only in that case. Otherwise it says the connection is not configured and does not call out.
