@@ -123,6 +123,26 @@ final class ErpNextCrmMapper
                 : ($docStatus === 0 ? 'draft' : 'open'),
             'erp_name' => $doc['name'] ?? null,
             'customer_erp_name' => $doc['customer'] ?? null,
+            'posting_date' => $doc['posting_date'] ?? null,
+            'due_date' => $doc['due_date'] ?? null,
+            'outstanding_amount' => isset($doc['outstanding_amount']) ? (float) $doc['outstanding_amount'] : 0.0,
+            'docstatus' => $docStatus,
+            'is_return' => (bool) ($doc['is_return'] ?? false),
+        ];
+    }
+
+    public static function mapPaymentEntry(array $doc): array
+    {
+        return [
+            'erp_name' => $doc['name'] ?? null,
+            'customer_erp_name' => $doc['party'] ?? null,
+            'posting_date' => $doc['posting_date'] ?? null,
+            'paid_amount' => isset($doc['paid_amount']) ? (float) $doc['paid_amount'] : 0,
+            'received_amount' => isset($doc['received_amount']) ? (float) $doc['received_amount'] : 0,
+            'mode_of_payment' => $doc['mode_of_payment'] ?? null,
+            'status' => $doc['status'] ?? null,
+            'docstatus' => (int) ($doc['docstatus'] ?? 0),
+            'party_type' => $doc['party_type'] ?? null,
         ];
     }
 
@@ -146,7 +166,7 @@ final class ErpNextCrmMapper
 
         $phone = (string) $value;
 
-        return str_starts_with($phone, '+') || ! ctype_digit($phone) ? $phone : '+'.$phone;
+        return str_starts_with($phone, '+') || ! ctype_digit($phone) ? $phone : '+' . $phone;
     }
 
     private static function quotationStatus(array $doc): string

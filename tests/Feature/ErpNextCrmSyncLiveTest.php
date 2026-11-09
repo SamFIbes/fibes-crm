@@ -224,13 +224,30 @@ it('refuses apply without the guard flag and supports live-smoke counts only', f
         }
 
         if (str_contains($url, '/api/method/frappe.client.get_count')) {
-            return Http::response(['message' => 12], 200);
+            $doctype = (string) ($request->data()['doctype'] ?? '');
+
+            return Http::response(['message' => match ($doctype) {
+                'Customer' => 12,
+                'Sales Invoice' => 7,
+                'Payment Entry' => 0,
+                default => 0,
+            }], 200);
         }
 
         if (str_contains($url, '/api/resource/Customer')) {
             return Http::response([
                 'data' => [['name' => 'CUST-SYNTH-SMOKE', 'modified' => '2026-11-05 14:00:00']],
             ], 200);
+        }
+
+        if (str_contains($url, 'Sales')) {
+            return Http::response([
+                'data' => [['name' => 'SINV-SMOKE', 'modified' => '2026-11-05 14:00:00']],
+            ], 200);
+        }
+
+        if (str_contains($url, 'Payment')) {
+            return Http::response(['data' => []], 200);
         }
 
         return Http::response(['message' => 'unexpected'], 500);
@@ -248,6 +265,8 @@ it('refuses apply without the guard flag and supports live-smoke counts only', f
         ->and($output)->toContain('HTTP OK')
         ->and($output)->toContain('customer_count=12')
         ->and($output)->toContain('page_rows=1')
+        ->and($output)->toContain('invoice_count=7')
+        ->and($output)->toContain('payment_count=0')
         ->and($output)->not->toContain('CUST-SYNTH-SMOKE')
         ->and($output)->not->toContain('@');
 });

@@ -2,6 +2,12 @@
 
 ## 2026-11-09
 
+Added a read-only ERPNext Sales Invoice and Payment Entry pull into additive mirror tables (`erp_sales_invoices`, `erp_payment_entries`), linked to customers by `erp_name`. Dry-run stays the default; writes need `FIBES_ERPNEXT_CRM_APPLY=true`. Stacks on the live Customer pull.
+
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/PR_NUMBER_PLACEHOLDER
+
+## 2026-11-09
+
 Added a live, read-only ERPNext Customer pull (with linked Contact and Address) on `erpnext:crm-sync`. Dry-run stays the default and prints counts only. Database writes stay blocked unless `FIBES_ERPNEXT_CRM_APPLY=true`. A `--live-smoke` check reports Hub counts only. Stacks on the dry-run mapping from pull request 14.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/15
