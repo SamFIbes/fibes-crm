@@ -6,7 +6,50 @@ import { useEffect, useRef } from 'react';
  * prefers-reduced-motion paints one still frame and does not loop.
  */
 
-const COLORS = ['102,196,143', '117,205,200', '120,208,224'];
+const FALLBACK_COLORS = ['31,209,122', '25,195,214', '24,207,224'];
+
+function brandColors(): string[] {
+    if (typeof document === 'undefined') {
+        return FALLBACK_COLORS;
+    }
+
+    const styles = getComputedStyle(document.documentElement);
+    const parsed = ['--brand-mint', '--brand-aqua', '--brand-sky'].map((name) => rgbChannels(styles.getPropertyValue(name)));
+
+    if (!parsed.every((color) => color !== null)) {
+        return FALLBACK_COLORS;
+    }
+
+    const [mint, aqua, sky] = parsed as string[];
+
+    return [mint, aqua, lighten(sky)];
+}
+
+function lighten(channels: string): string {
+    return channels
+        .split(',')
+        .map((part) => Math.round(Number(part) + (255 - Number(part)) * 0.62))
+        .join(',');
+}
+
+function rgbChannels(input: string): string | null {
+    const value = input.trim();
+    const hex = value.match(/^#([0-9a-f]{6})$/i);
+
+    if (hex) {
+        const n = Number.parseInt(hex[1], 16);
+
+        return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+    }
+
+    const rgb = value.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i);
+
+    if (!rgb) {
+        return null;
+    }
+
+    return `${Math.round(Number(rgb[1]))},${Math.round(Number(rgb[2]))},${Math.round(Number(rgb[3]))}`;
+}
 
 type Dust = {
     x: number;
@@ -30,7 +73,7 @@ function contextOf(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
     }
 }
 
-function seed(width: number, height: number): Dust[] {
+function seed(width: number, height: number, colors: string[]): Dust[] {
     const count = Math.round(Math.min(56, Math.max(18, (width * height) / 22000)));
     const dust: Dust[] = [];
 
@@ -42,7 +85,7 @@ function seed(width: number, height: number): Dust[] {
             vx: (Math.random() - 0.5) * 0.28,
             vy: (Math.random() - 0.5) * 0.28,
             alpha: 0.28 + Math.random() * 0.45,
-            color: COLORS[index % COLORS.length],
+            color: colors[index % colors.length],
         });
     }
 
@@ -65,7 +108,7 @@ function draw(ctx: CanvasRenderingContext2D, dust: Dust[], width: number, height
                     continue;
                 }
 
-                ctx.strokeStyle = `rgba(186,236,228,${(1 - dist / 118) * 0.28})`;
+                ctx.strokeStyle = `rgba(255,255,255,${(1 - dist / 118) * 0.22})`;
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(a.x, a.y);
@@ -118,7 +161,7 @@ export function ParticleField() {
             canvas.width = Math.floor(width * dpr);
             canvas.height = Math.floor(height * dpr);
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            dust = seed(width, height);
+            dust = seed(width, height, brandColors());
             draw(ctx, dust, width, height, false);
         };
 

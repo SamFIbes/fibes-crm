@@ -10,7 +10,7 @@ export function DataTable<T>({ columns, data, empty }: { columns: ColumnDef<T, u
             <table className="w-full min-w-[640px] text-start">
                 <thead>
                     {table.getHeaderGroups().map((group) => (
-                        <tr key={group.id} className="border-b border-line text-start text-2xs font-bold uppercase tracking-[0.1em] text-faint">
+                        <tr key={group.id} className="border-b border-line text-start text-xs font-semibold text-muted">
                             {group.headers.map((header) => (
                                 <th key={header.id} scope="col" className="px-4 py-3 text-start font-bold">
                                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -28,7 +28,7 @@ export function DataTable<T>({ columns, data, empty }: { columns: ColumnDef<T, u
                         </tr>
                     ) : (
                         rows.map((row) => (
-                            <tr key={row.id} className="border-b border-line text-md last:border-0 hover:bg-well">
+                            <tr key={row.id} className="border-b border-line text-sm last:border-0 hover:bg-card-2">
                                 {row.getVisibleCells().map((cell) => (
                                     <td key={cell.id} className="px-4 py-3 align-middle">
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

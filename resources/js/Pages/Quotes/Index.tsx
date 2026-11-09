@@ -181,7 +181,7 @@ export default function QuotesIndex({
                                     {can_create && quote.status === 'approved' ? (
                                         <>
                                             <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/quotes/${quote.id}/send`, { channel: 'link' }, { preserveScroll: true })}>{t('quotes.office')}</Button>
-                                            <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/quotes/${quote.id}/send`, { channel: 'whatsapp' }, { preserveScroll: true })}>{t('quotes.send_whatsapp')}</Button>
+                                            <Button type="button" size="sm" variant="wa" onClick={() => router.post(`/quotes/${quote.id}/send`, { channel: 'whatsapp' }, { preserveScroll: true })}>{t('quotes.send_whatsapp')}</Button>
                                             <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/quotes/${quote.id}/send`, { channel: 'email' }, { preserveScroll: true })}>{t('quotes.send_email')}</Button>
                                         </>
                                     ) : null}

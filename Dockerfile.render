@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Single-container image for Render (or any host that gives one web service).
+# Single-container image for Render, Railway, or any host that gives one web service.
 # nginx + php-fpm + queue worker + scheduler under supervisord, listening on $PORT.
 # Reuses the vendor and assets stages from the main Dockerfile's recipe.
 
@@ -60,4 +60,7 @@ ENV PORT=10000 \
     DB_CONNECTION=pgsql
 
 EXPOSE 10000
+# start.sh has to run as root: it writes the nginx config, migrates, and chowns storage.
+# php-fpm workers, the queue, and the scheduler run as www-data. nginx drops its workers.
+# nosemgrep: dockerfile.security.missing-user.missing-user, dockerfile.security.missing-user-entrypoint.missing-user-entrypoint
 CMD ["/start.sh"]

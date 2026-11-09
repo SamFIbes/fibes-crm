@@ -14,7 +14,7 @@ export function ThemeToggle() {
             onClick={toggle}
             aria-label={nextLabel}
             title={nextLabel}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-foreground transition-colors duration-200 hover:bg-secondary"
+            className="icon-btn"
         >
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
