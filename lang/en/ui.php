@@ -263,6 +263,7 @@ return [
         'role_saved' => 'Role saved.',
         'own_role' => 'You cannot change your own roles.',
         'last_admin' => 'The last active Super Admin cannot be removed.',
+        'super_admin_only' => 'Only a Super Admin can give or change Super Admin access.',
         'viewing_as' => 'Viewing as :name. Changes are blocked.',
         'viewing_stopped' => 'You are yourself again.',
         'stop_viewing' => 'Stop',
