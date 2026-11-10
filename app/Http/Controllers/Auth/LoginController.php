@@ -11,6 +11,7 @@ use App\Services\Auth\SessionRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -38,7 +39,11 @@ class LoginController extends Controller
         $user = User::query()->whereRaw('lower(email) = ?', [$email])->first();
         $password = $request->string('password')->toString();
 
-        if (! $user || ! Hash::check($password, $user->password)) {
+        // Always run one password hash, so an unknown email takes as long as a
+        // wrong password and the response time doesn't reveal who has an account.
+        $matches = Hash::check($password, $user?->password ?? $this->dummyHash());
+
+        if (! $user || ! $matches) {
             $guard->recordFailure($request, $email, $user);
 
             throw ValidationException::withMessages([
@@ -54,17 +59,19 @@ class LoginController extends Controller
             ]);
         }
 
-        $guard->clear($request, $email);
         $remember = $request->boolean('remember');
 
         if ($user->hasTwoFactorEnabled()) {
+            // Failure counters are only cleared once the second step succeeds.
             $request->session()->regenerate();
             $request->session()->put('login.id', $user->id);
             $request->session()->put('login.remember', $remember);
+            $request->session()->put('login.at', now()->getTimestamp());
 
             return redirect()->route('two-factor.login');
         }
 
+        $guard->clear($request, $email);
         Auth::login($user, $remember);
         $request->session()->regenerate();
         $sessions->rememberLogin($request);
@@ -79,6 +86,12 @@ class LoginController extends Controller
         $user = $request->user();
 
         if ($user instanceof User) {
+            $viewing = $request->session()->get('view_as_user_id');
+
+            if ($viewing) {
+                $audit->record('auth.view_as.stopped', $user, ['user_id' => $viewing, 'reason' => 'logout'], $request);
+            }
+
             $audit->record('auth.logout', $user, [], $request);
         }
 
@@ -87,6 +100,15 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    private function dummyHash(): string
+    {
+        $driver = (string) config('hashing.driver', 'bcrypt');
+        $cost = (string) json_encode(config('hashing.'.$driver));
+
+        // Same algorithm and cost as real passwords; made once and reused.
+        return Cache::rememberForever('auth:dummy-hash:'.sha1($driver.$cost), fn () => Hash::make(Str::random(40)));
     }
 
     private function afterLogin(User $user): RedirectResponse

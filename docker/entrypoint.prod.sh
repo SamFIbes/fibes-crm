@@ -37,7 +37,13 @@ mkdir -p storage/framework/cache/data storage/framework/sessions storage/framewo
 php artisan package:discover --ansi
 php artisan storage:link --force || true
 php artisan migrate --force --no-interaction
-php artisan db:seed --force --no-interaction
+# Seeding re-syncs built-in role permissions, re-promotes the configured admin
+# and overwrites reference rows, so it only runs when asked for explicitly.
+if [ "${FIBES_RUN_SEED:-}" = "true" ]; then
+    php artisan db:seed --force --no-interaction
+else
+    echo "Database seeding skipped (FIBES_RUN_SEED is not true)."
+fi
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache

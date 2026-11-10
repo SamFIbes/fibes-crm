@@ -27,7 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->trustProxies(at: '*');
+        // Trusted proxies come from config/trustedproxy.php (TRUSTED_PROXIES), read per request.
         $middleware->prepend(TvTokenGuard::class);
         $middleware->prepend(RequestId::class);
         $middleware->web(append: [
