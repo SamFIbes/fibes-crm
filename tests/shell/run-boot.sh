@@ -4,12 +4,12 @@
 # php invocation so tests can see migrate versus db:seed.
 set -eu
 
-kind="${1:?render, railway or prod}"
+kind="${1:?render or railway}"
 seed="${2:?unset, true, or false}"
 migrations="${3:?unset, true, or false}"
 
 case "$kind" in
-    render|railway|prod) ;;
+    render|railway) ;;
     *) echo "Unknown entrypoint: $kind" >&2; exit 2 ;;
 esac
 
@@ -112,8 +112,6 @@ if [ "$kind" = "render" ]; then
     sh "$repo/docker/render/start.sh" >"$work/stdout" 2>"$work/stderr"
 elif [ "$kind" = "railway" ]; then
     sh "$repo/docker/railway/entrypoint.sh" apache2-foreground >"$work/stdout" 2>"$work/stderr"
-elif [ "$kind" = "prod" ]; then
-    sh "$repo/docker/entrypoint.prod.sh" true >"$work/stdout" 2>"$work/stderr"
 else
     echo "unknown kind: $kind" >&2
     exit 2
