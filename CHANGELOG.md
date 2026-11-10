@@ -2,6 +2,8 @@
 
 ## 2026-11-10
 
+The updates branch no longer re-runs the database seeder on every start, which could reset role permissions and the admin account. It now seeds only when FIBES_RUN_SEED=true, the same rule main already has.
+
 Typing wrong passwords for someone's email now pauses sign-in only from the device or network doing it, so a stranger can't lock a staff member out. A large attack from many places still pauses the account, and the owner gets one warning email.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/30
