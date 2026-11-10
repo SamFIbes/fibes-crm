@@ -4,6 +4,8 @@
 
 The sales TV feed, the automations ping, export download links and the Meta/WhatsApp verify endpoints now have rate limits, so tokens and keys can't be guessed by brute force. A real TV screen keeps refreshing normally.
 
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/37
+
 Links like fibes.io/build and fibes.io/storage/ no longer redirect to a broken http://www.fibes.io:8080 address. The server now keeps these redirects on https. This also adds the Railway build files to updates (same as the railway branch, plus this fix).
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/36
