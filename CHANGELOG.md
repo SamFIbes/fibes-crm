@@ -4,6 +4,8 @@
 
 The background worker now reads jobs from the same queue the app sends them to, instead of always the database queue, so jobs can't get stuck unprocessed if the queue setting changes. Deploy config: check the Railway QUEUE_CONNECTION before merging.
 
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/28
+
 People who can manage users but are not Super Admins can no longer give anyone Super Admin rights or change a Super Admin's account (email, password, roles).
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/27
