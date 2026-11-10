@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Settings\CommercialSettings;
 use App\Support\Access\AccessGate;
+use App\Support\CsvCell;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -68,7 +69,7 @@ class TableExport
         fputcsv($handle, ['account_no', 'name_en']);
 
         foreach ($rows as $row) {
-            fputcsv($handle, [$row->account_no, $row->name_en]);
+            fputcsv($handle, CsvCell::row([$row->account_no, $row->name_en]));
         }
 
         rewind($handle);
