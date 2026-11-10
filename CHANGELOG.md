@@ -4,6 +4,8 @@
 
 People who can manage users but are not Super Admins can no longer give anyone Super Admin rights or change a Super Admin's account (email, password, roles).
 
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/27
+
 Customer, report, commission and purchasing CSV exports now make sure a name or value starting with = + - or @ shows as plain text in Excel instead of running as a formula.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/26
