@@ -25,6 +25,15 @@ class EnforceAccountSecurity
             return $next($request);
         }
 
+        if (! $user->is_active) {
+            $this->audit->record('auth.session.inactive', $user, [], $request);
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->with('status', __('ui.auth.inactive'));
+        }
+
         if ($this->sessions->expired($request)) {
             $this->audit->record('auth.session.expired', $user, [], $request);
             Auth::guard('web')->logout();

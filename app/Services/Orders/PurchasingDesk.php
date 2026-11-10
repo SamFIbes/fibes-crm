@@ -14,6 +14,7 @@ use App\Services\Approvals\ApprovalDesk;
 use App\Services\Audit\AuditLogger;
 use App\Services\Inventory\StockLedger;
 use App\Support\Access\AccessGate;
+use App\Support\CsvCell;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -176,21 +177,25 @@ class PurchasingDesk
     public function export(User $actor, Request $request): string
     {
         $seeCost = $this->access->allows($actor, 'billing.view_cost');
-        $header = $seeCost
-            ? "id,sku,kind,quantity,unit_cost_usd,created_at\n"
-            : "id,sku,kind,quantity,created_at\n";
-        $body = '';
+        $handle = fopen('php://temp', 'w+');
+        fputcsv($handle, $seeCost
+            ? ['id', 'sku', 'kind', 'quantity', 'unit_cost_usd', 'created_at']
+            : ['id', 'sku', 'kind', 'quantity', 'created_at']);
+        $count = 0;
 
-        StockMovement::query()->with('item')->orderBy('id')->each(function (StockMovement $row) use (&$body, $seeCost): void {
-            $sku = $row->item?->sku;
+        StockMovement::query()->with('item')->orderBy('id')->each(function (StockMovement $row) use ($handle, $seeCost, &$count): void {
             $when = $row->created_at?->timezone((string) config('app.timezone'))->format('d/m/Y H:i');
-            $body .= $seeCost
-                ? $row->id.','.$sku.','.$row->kind.','.$row->quantity.','.$row->unit_cost_usd.','.$when."\n"
-                : $row->id.','.$sku.','.$row->kind.','.$row->quantity.','.$when."\n";
+            fputcsv($handle, CsvCell::row($seeCost
+                ? [$row->id, $row->item?->sku, $row->kind, $row->quantity, $row->unit_cost_usd, $when]
+                : [$row->id, $row->item?->sku, $row->kind, $row->quantity, $when]));
+            $count++;
         });
-        $this->audit->record('purchasing.exported', $actor, ['rows' => substr_count($body, "\n")], $request);
+        rewind($handle);
+        $body = stream_get_contents($handle) ?: '';
+        fclose($handle);
+        $this->audit->record('purchasing.exported', $actor, ['rows' => $count], $request);
 
-        return $header.$body;
+        return $body;
     }
 
     private function assert(string $from, string $to): void
