@@ -27,13 +27,13 @@ until curl -s -o /dev/null "http://127.0.0.1:$port/"; do
 done
 
 probe() {
-    label="$1"; path="$2"; shift 2
-    out=$(curl -s -o /dev/null -w '%{http_code}|%{redirect_url}' -H 'Host: www.fibes.io' "$@" "http://127.0.0.1:$port$path")
+    label="$1"; host="$2"; path="$3"; shift 3
+    out=$(curl -s -o /dev/null -w '%{http_code}|%{redirect_url}' -H "Host: $host" "$@" "http://127.0.0.1:$port$path")
     printf '%s|%s\n' "$label" "$out"
 }
 
-probe dir-https /build -H 'X-Forwarded-Proto: https'
-probe slash-https /storage/ -H 'X-Forwarded-Proto: https'
-probe dir-http /build
-probe host-port-https /build -H 'Host: www.fibes.io:8080' -H 'X-Forwarded-Proto: https'
-probe app-https /login -H 'X-Forwarded-Proto: https'
+probe dir-https www.fibes.io /build -H 'X-Forwarded-Proto: https'
+probe slash-https www.fibes.io /storage/ -H 'X-Forwarded-Proto: https'
+probe no-forwarded-proto www.fibes.io /build
+probe other-host fibes-crm.up.railway.app /build -H 'X-Forwarded-Proto: https'
+probe app-https www.fibes.io /login -H 'X-Forwarded-Proto: https'
