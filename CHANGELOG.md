@@ -4,6 +4,8 @@
 
 Typing wrong passwords for someone's email now pauses sign-in only from the device or network doing it, so a stranger can't lock a staff member out. A large attack from many places still pauses the account, and the owner gets one warning email.
 
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/30
+
 Website form posts that are retried or sent twice no longer create duplicate leads or fail the captcha check, and a copied request can't be replayed to add leads. The website can also sign a timestamp for stronger protection.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/29
