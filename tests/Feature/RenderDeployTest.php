@@ -20,7 +20,7 @@ it('ships a single-container Render image that listens on PORT', function () {
 
     expect($dockerfile)->toContain('AS render')->toContain('SESSION_SECURE_COOKIE=true')
         ->and($nginx)->toContain('listen ${PORT}')
-        ->and($supervisor)->toContain('queue:work database')->toContain('schedule:work');
+        ->and($supervisor)->toContain('queue:work "${QUEUE_CONNECTION:-database}"')->toContain('schedule:work');
 });
 
 // Runs only when a throwaway PostgreSQL is given, for example:
@@ -43,4 +43,20 @@ it('migrates on PostgreSQL with or without PostGIS', function () {
     expect(Schema::connection('pgtest')->hasColumn('coverage_items', 'geom'))->toBe($postgis);
 
     Artisan::call('db:wipe', ['--database' => 'pgtest', '--force' => true]);
+});
+
+it('runs the queue worker on the same connection the app sends jobs to', function () {
+    $supervisor = (string) file_get_contents(base_path('docker/render/supervisord.conf'));
+    preg_match('/^\[program:queue\]\n(?:.*\n)*?command=(.+)$/m', $supervisor, $match);
+    $command = $match[1] ?? '';
+
+    expect($command)->toContain('exec php /var/www/html/artisan queue:work "${QUEUE_CONNECTION:-database}"')
+        ->and($command)->not->toContain('queue:work database')
+        ->and(config('queue.default'))->toBe(env('QUEUE_CONNECTION', 'database'));
+
+    $dockerfile = (string) file_get_contents(base_path('Dockerfile.render'));
+    expect($dockerfile)->toContain('QUEUE_CONNECTION=database');
+
+    $shell = trim((string) shell_exec('QUEUE_CONNECTION= sh -c \'echo "${QUEUE_CONNECTION:-database}"\''));
+    expect($shell)->toBe('database');
 });

@@ -5,7 +5,7 @@ Run these scripts on the FIBES server, after Sam approves a tag. They do not run
 ## Deploy
 
 1. Record the tag that is running now. The script stores it in `FIBES_DEPLOY_STATE_DIR` (default `/var/lib/fibes-deploy`).
-2. `docker compose -p fibes-prod -f docker-compose.prod.yml up -d --build` builds the new app image and starts the stack. Migrations are additive. The queue and the scheduler do not run migrations (`FIBES_RUN_MIGRATIONS=false`).
+2. `docker compose -p fibes-prod -f docker-compose.prod.yml up -d --build` builds the new app image and starts the stack. Migrations are additive. The queue and the scheduler do not run migrations (`FIBES_RUN_MIGRATIONS=false`). The app container seeds (`db:seed`: roles, settings, first admin) only when `FIBES_RUN_SEED=true`; set it for the first boot of an empty database only.
 3. `curl` the health URL (`FIBES_DEPLOY_HEALTH_URL`, default `http://127.0.0.1/health`).
 4. If the status is not 200, the previous tag is written back and the script exits. Bring that tag back with `scripts/rollback.sh` and the compose project you already have. Do not run `migrate:fresh`, `db:wipe`, or a down that deletes volumes.
 

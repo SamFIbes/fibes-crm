@@ -119,6 +119,10 @@ return [
         'meta_verify_token' => env('FIBES_META_VERIFY_TOKEN', ''),
         'meta_app_secret' => env('FIBES_META_APP_SECRET', ''),
         'turnstile_secret' => env('FIBES_TURNSTILE_SECRET', ''),
+        // Website forms may sign "<unix time>.<body>" and send X-Fibes-Timestamp.
+        // Set to true once the website does, to refuse old body-only signatures.
+        'web_form_require_timestamp' => (bool) env('FIBES_WEB_FORM_REQUIRE_TIMESTAMP', false),
+        'web_form_tolerance_seconds' => 300,
     ],
 
     /*
