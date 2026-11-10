@@ -2,6 +2,8 @@
 
 ## 2026-11-10
 
+There is now a post-deploy checklist (docs/post-deploy-checklist.md) and a read-only check script (scripts/smoke-check.sh) that confirms fibes.io redirects to https, sends the security header, loads the sign-in page, reports healthy and turns away bad webhook requests. There is also a written plan for moving the live site from the railway branch to updates (docs/deploy-branch.md); nothing in Railway was changed.
+
 The app no longer believes forwarded IP and https headers from just anyone. It only trusts Railway's proxy and local or private networks, so someone can't fake their address to get around sign-in limits. TRUSTED_PROXIES can change the list.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/34
