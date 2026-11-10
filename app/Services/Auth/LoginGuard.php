@@ -39,6 +39,14 @@ class LoginGuard
             return;
         }
 
+        $this->lockAccount($request, $email, $user);
+    }
+
+    /**
+     * Pause sign-in for this email for the lockout period and tell the account owner.
+     */
+    public function lockAccount(Request $request, string $email, ?User $user): void
+    {
         Cache::put(
             $this->lockKey($email),
             now()->addMinutes($this->lockoutMinutes())->getTimestamp(),
@@ -53,6 +61,16 @@ class LoginGuard
         if ($user && $user->is_active) {
             $user->notify(new AccountLockedNotification($this->lockoutMinutes()));
         }
+    }
+
+    public function lockoutAttemptLimit(): int
+    {
+        return $this->lockoutAttempts();
+    }
+
+    public function lockoutSeconds(): int
+    {
+        return $this->lockoutMinutes() * 60;
     }
 
     public function clear(Request $request, string $email): void

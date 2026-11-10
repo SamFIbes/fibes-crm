@@ -12,6 +12,7 @@ use App\Services\Auth\SessionRegistry;
 use App\Support\Access\AccessGate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -102,6 +103,12 @@ class UserController extends Controller
             'extension' => $data['extension'] ?? null,
         ]);
 
+        $deactivating = $user->isDirty('is_active') && ! $user->is_active;
+
+        if ($deactivating) {
+            $user->setRememberToken(Str::random(60));
+        }
+
         if (! empty($data['password'])) {
             $user->must_change_password = true;
             $user->password = $data['password'];
@@ -111,6 +118,11 @@ class UserController extends Controller
 
         if (! $request->user()->is($user)) {
             $this->syncAccess($request, $user, $data);
+        }
+
+        if ($deactivating) {
+            $sessions->forUser($user->id)->each(fn (object $row) => $sessions->delete((string) $row->id));
+            $audit->record('auth.session.revoked', $request->user(), ['user_id' => $user->id, 'scope' => 'deactivated'], $request);
         }
 
         if ($request->boolean('revoke_sessions')) {
