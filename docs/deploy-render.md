@@ -41,7 +41,8 @@ Generate once and keep it secret (changing it logs everyone out and breaks encry
 
 ## What happens at start
 Wait for Postgres > `migrate --force` (enables PostGIS when available) > `db:seed --force`
-(roles, settings, first admin) > config/route/view caches > nginx on `$PORT`.
+(roles, settings, first admin) **only when `FIBES_RUN_SEED=true`** > config/route/view caches > nginx on `$PORT`.
+Set `FIBES_RUN_SEED=true` for the very first boot of an empty database, then remove it.
 The admin must choose a new password at first sign-in.
 
 ## Free plan limits
