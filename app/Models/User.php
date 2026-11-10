@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -159,13 +161,23 @@ class User extends Authenticatable
         return max(0, (int) ceil($seconds / 86400));
     }
 
-    public function replacePassword(string $password): void
+    /**
+     * Set a new password and sign out every other device: the remember-me token is
+     * rotated and the user's stored sessions are deleted, except $keepSessionId.
+     */
+    public function replacePassword(string $password, ?string $keepSessionId = null): void
     {
         $this->forceFill([
             'password' => $password,
             'must_change_password' => false,
             'password_changed_at' => now(),
+            'remember_token' => Str::random(60),
         ])->save();
+
+        DB::table('sessions')
+            ->where('user_id', $this->getKey())
+            ->when($keepSessionId !== null && $keepSessionId !== '', fn ($query) => $query->where('id', '!=', $keepSessionId))
+            ->delete();
     }
 
     private function twoFactorGraceDays(): int
