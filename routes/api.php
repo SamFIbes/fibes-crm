@@ -9,14 +9,14 @@ use App\Http\Controllers\WhatsAppWebhookController;
 use App\Http\Controllers\WhishWebhookController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/v1/tv/sales', [PerformanceController::class, 'feed'])->name('tv.feed');
-Route::get('/v1/automations/ping', [AutomationController::class, 'ping'])->name('automations.ping');
+Route::get('/v1/tv/sales', [PerformanceController::class, 'feed'])->middleware('throttle:tv')->name('tv.feed');
+Route::get('/v1/automations/ping', [AutomationController::class, 'ping'])->middleware('throttle:public-token')->name('automations.ping');
 
 Route::post('/v1/hooks/web-form', [LeadWebhookController::class, 'webForm'])
     ->middleware('throttle:30,1')
     ->name('hooks.web-form');
-Route::get('/v1/hooks/meta', [LeadWebhookController::class, 'metaVerify'])->name('hooks.meta.verify');
-Route::post('/v1/hooks/meta', [LeadWebhookController::class, 'meta'])->name('hooks.meta');
+Route::get('/v1/hooks/meta', [LeadWebhookController::class, 'metaVerify'])->middleware('throttle:30,1')->name('hooks.meta.verify');
+Route::post('/v1/hooks/meta', [LeadWebhookController::class, 'meta'])->middleware('throttle:60,1')->name('hooks.meta');
 
 Route::post('/v1/hooks/erpnext', ErpNextWebhookController::class)
     ->middleware(['throttle:60,1', 'erpnext.signature'])
@@ -26,7 +26,7 @@ Route::post('/v1/hooks/whish', WhishWebhookController::class)
     ->middleware(['throttle:60,1', 'whish.signature'])
     ->name('hooks.whish');
 
-Route::get('/v1/hooks/whatsapp', [WhatsAppWebhookController::class, 'verify'])->name('hooks.whatsapp.verify');
+Route::get('/v1/hooks/whatsapp', [WhatsAppWebhookController::class, 'verify'])->middleware('throttle:30,1')->name('hooks.whatsapp.verify');
 Route::post('/v1/hooks/whatsapp', [WhatsAppWebhookController::class, 'store'])
     ->middleware('throttle:60,1')
     ->name('hooks.whatsapp');

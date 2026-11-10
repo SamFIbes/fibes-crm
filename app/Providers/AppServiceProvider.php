@@ -34,9 +34,12 @@ use App\Services\Quotes\DocumentDriver;
 use App\Services\Quotes\HtmlDocumentDriver;
 use App\Services\Quotes\LogSms;
 use App\Services\Quotes\SmsDriver;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -73,6 +76,7 @@ class AppServiceProvider extends ServiceProvider
         DB::prohibitDestructiveCommands(! $this->app->environment(['local', 'testing']));
 
         Password::defaults(fn () => Password::min(12)->mixedCase()->numbers());
+        $this->rateLimiters();
         $logger = Log::getLogger();
 
         if (method_exists($logger, 'pushProcessor')) {
@@ -92,5 +96,22 @@ class AppServiceProvider extends ServiceProvider
                 'subject_type' => 'order', 'subject_id' => $event->order->id, 'customer_id' => $event->order->customer_id,
             ]);
         });
+    }
+
+    /**
+     * Limits for routes anyone on the internet can call.
+     */
+    private function rateLimiters(): void
+    {
+        // A sales TV polls every 2 seconds; several screens may share one office IP.
+        RateLimiter::for('tv', fn (Request $request) => $request->attributes->get('tv_token') === true
+            ? Limit::perMinute(240)->by('tv:'.$request->ip())
+            : Limit::perMinute(20)->by('tv-anon:'.$request->ip()));
+
+        // Signed links and API keys: plenty for real use, too few to guess.
+        RateLimiter::for('public-token', fn (Request $request) => Limit::perMinute(30)->by('public-token:'.$request->ip()));
+
+        // Downloads of whole tables by signed-in staff.
+        RateLimiter::for('exports', fn (Request $request) => Limit::perMinute(10)->by('exports:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
     }
 }
