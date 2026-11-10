@@ -4,6 +4,8 @@
 
 Sending a stock request to ERPNext can no longer create the same Material Request twice. If a first try reached ERPNext but the answer got lost, the retry now finds and reuses that document instead of making a new one.
 
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/25
+
 Every pull request into updates or main now gets automatic checks: the backend tests, a code-style check, the TypeScript check, the frontend tests and a production build.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/24
