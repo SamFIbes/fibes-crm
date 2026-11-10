@@ -2,6 +2,8 @@
 
 ## 2026-11-10
 
+Website form posts that are retried or sent twice no longer create duplicate leads or fail the captcha check, and a copied request can't be replayed to add leads. The website can also sign a timestamp for stronger protection.
+
 The background worker now reads jobs from the same queue the app sends them to, instead of always the database queue, so jobs can't get stuck unprocessed if the queue setting changes. Deploy config: check the Railway QUEUE_CONNECTION before merging.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/28
