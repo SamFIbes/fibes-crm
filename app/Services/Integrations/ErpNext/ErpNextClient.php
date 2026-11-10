@@ -97,6 +97,42 @@ class ErpNextClient
     }
 
     /**
+     * Find a non-cancelled Material Request whose title is "<number>" or ends with "(<number>)".
+     */
+    public function findMaterialRequestByNumber(string $number): ?string
+    {
+        $number = trim($number);
+
+        if ($number === '') {
+            return null;
+        }
+
+        $like = addcslashes($number, '%_\\');
+        $body = $this->send('GET', $this->resource('Material Request'), [
+            'fields' => json_encode(['name', 'title']),
+            'filters' => json_encode([['docstatus', '!=', 2]]),
+            'or_filters' => json_encode([
+                ['title', 'like', '%('.$like.')'],
+                ['title', '=', $number],
+            ]),
+            'order_by' => 'creation asc',
+            'limit_page_length' => 20,
+        ]);
+
+        foreach ((array) data_get($body, 'data', []) as $row) {
+            $title = (string) data_get($row, 'title', '');
+            $name = data_get($row, 'name');
+
+            // Re-check client-side: LIKE treats "_" as a wildcard on some backends.
+            if (is_string($name) && $name !== '' && ($title === $number || str_ends_with($title, '('.$number.')'))) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function getStockEntry(string $name): array

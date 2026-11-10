@@ -54,17 +54,19 @@ class LoginController extends Controller
             ]);
         }
 
-        $guard->clear($request, $email);
         $remember = $request->boolean('remember');
 
         if ($user->hasTwoFactorEnabled()) {
+            // Failure counters are only cleared once the second step succeeds.
             $request->session()->regenerate();
             $request->session()->put('login.id', $user->id);
             $request->session()->put('login.remember', $remember);
+            $request->session()->put('login.at', now()->getTimestamp());
 
             return redirect()->route('two-factor.login');
         }
 
+        $guard->clear($request, $email);
         Auth::login($user, $remember);
         $request->session()->regenerate();
         $sessions->rememberLogin($request);
@@ -79,6 +81,12 @@ class LoginController extends Controller
         $user = $request->user();
 
         if ($user instanceof User) {
+            $viewing = $request->session()->get('view_as_user_id');
+
+            if ($viewing) {
+                $audit->record('auth.view_as.stopped', $user, ['user_id' => $viewing, 'reason' => 'logout'], $request);
+            }
+
             $audit->record('auth.logout', $user, [], $request);
         }
 

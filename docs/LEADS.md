@@ -14,6 +14,11 @@ The form on the public site does not call FIBES directly. Your site receives the
 
 Header `X-Fibes-Signature` is HMAC-SHA256 of the raw body, using `FIBES_WEB_FORM_SECRET`. A filled `company_website` field is ignored (it is a honeypot). If `FIBES_TURNSTILE_SECRET` is set, send `turnstile_token` as well. Repeat a successful post with the same `Idempotency-Key` to get the same lead back.
 
+Replay protection:
+- Preferred: also send `X-Fibes-Timestamp` (Unix seconds) and sign `<timestamp>.<raw body>` instead of the body alone. Requests more than 5 minutes old are refused.
+- Body-only signatures still work until `FIBES_WEB_FORM_REQUIRE_TIMESTAMP=true`.
+- Sending the exact same signed request again, or a retry with the same `Idempotency-Key`, returns the first answer and never creates a second lead, even after the captcha token has been used. A retry that arrives while the first is still running gets `409` with `Retry-After`.
+
 ```html
 <form method="post" action="https://example.com/lead">
   <input name="name" required>
