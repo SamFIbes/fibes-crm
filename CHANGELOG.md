@@ -6,6 +6,18 @@ A code from your authenticator app now works only once. Using the same code a se
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/22
 
+Changing or resetting a password now signs you out on every other device and cancels old "remember me" sign-ins. The device you changed it on stays signed in.
+
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/20
+
+Switching a user off now signs them out straight away, including any "remember me" sign-in. Before, a switched-off user could keep using an open session.
+
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/19
+
+The Meta and WhatsApp webhook check pages no longer crash when someone sends a malformed address. They now answer with a normal refusal instead of a server error.
+
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/18
+
 ## 2026-11-08
 
 The sign-in page has a calmer animated background and a clearer form card. Email, password, remember-me, forgot-password, and sign-in itself work the same way as before.
