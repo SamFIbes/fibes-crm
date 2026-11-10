@@ -7,6 +7,8 @@ use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use PragmaRX\Google2FA\Google2FA;
 
@@ -51,7 +53,26 @@ class TwoFactorAuthentication
             return false;
         }
 
-        return $this->engine->verifyKey($secret, $normalized, 1);
+        $key = 'two-factor:last-step:'.$user->getKey();
+
+        try {
+            return Cache::lock($key.':lock', 5)->block(3, function () use ($secret, $normalized, $key): bool {
+                $last = Cache::get($key);
+                // With an old step given, the library returns the matched step, or false
+                // when the code is wrong or not newer than the last accepted one.
+                $step = $this->engine->verifyKeyNewer($secret, $normalized, is_int($last) ? $last : 0, 1);
+
+                if (! is_int($step)) {
+                    return false;
+                }
+
+                Cache::put($key, $step, now()->addMinutes(5));
+
+                return true;
+            });
+        } catch (LockTimeoutException) {
+            return false;
+        }
     }
 
     /**

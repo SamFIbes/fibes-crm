@@ -8,6 +8,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\Services\Performance\CommissionDesk;
 use App\Support\Access\AccessGate;
+use App\Support\CsvCell;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -107,7 +108,7 @@ class PerformanceController extends Controller
             fputcsv($out, ['user_id', 'period', 'kind', 'amount', 'currency', 'status']);
 
             foreach ($rows as $row) {
-                fputcsv($out, [$row->user_id, $row->period?->toDateString(), $row->kind, $row->amount, $row->currency, $row->status]);
+                fputcsv($out, CsvCell::row([$row->user_id, $row->period?->toDateString(), $row->kind, $row->amount, $row->currency, $row->status]));
             }
 
             fclose($out);
