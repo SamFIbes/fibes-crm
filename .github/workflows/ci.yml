@@ -43,6 +43,12 @@ jobs:
       - name: Code style (pint)
         run: vendor/bin/pint --test
 
+      # SeedGuardTest boots the deploy entrypoints inside an unprivileged user
+      # namespace. Ubuntu 24.04 runners block those by default (AppArmor); the
+      # runner is a throwaway VM, so allow them for this job.
+      - name: Allow user namespaces for the boot-script sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
       - name: Tests
         run: php artisan test
 
