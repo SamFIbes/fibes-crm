@@ -33,7 +33,7 @@ class ViewAsController extends Controller
         $actor = $request->user();
         $target = $request->session()->pull('view_as_user_id');
 
-        if ($actor instanceof User) {
+        if ($actor instanceof User && $target) {
             $audit->record('auth.view_as.stopped', $actor, ['user_id' => $target], $request);
         }
 

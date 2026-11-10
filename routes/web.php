@@ -332,8 +332,12 @@ Route::middleware(['auth', 'account.security'])->group(function () {
         Route::put('/admin/roles/{role}', [RoleController::class, 'update'])->whereNumber('role')->name('admin.roles.update');
         Route::post('/admin/roles/{role}/clone', [RoleController::class, 'clone'])->whereNumber('role')->name('admin.roles.clone');
         Route::post('/admin/view-as', [ViewAsController::class, 'store'])->name('admin.view-as.store');
-        Route::delete('/admin/view-as', [ViewAsController::class, 'destroy'])->name('admin.view-as.stop');
     });
+
+    // Not behind users.manage: while viewing as someone, permissions are the viewed
+    // user's, so the "Stop viewing" button must work without them. It only clears
+    // the view-as marker from the caller's own session.
+    Route::delete('/admin/view-as', [ViewAsController::class, 'destroy'])->name('admin.view-as.stop');
 
     Route::get('/account/password', [AccountPasswordController::class, 'edit'])->name('password.required');
     Route::put('/account/password/required', [AccountPasswordController::class, 'update'])->name('password.required.update');

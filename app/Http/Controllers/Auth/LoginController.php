@@ -81,6 +81,12 @@ class LoginController extends Controller
         $user = $request->user();
 
         if ($user instanceof User) {
+            $viewing = $request->session()->get('view_as_user_id');
+
+            if ($viewing) {
+                $audit->record('auth.view_as.stopped', $user, ['user_id' => $viewing, 'reason' => 'logout'], $request);
+            }
+
             $audit->record('auth.logout', $user, [], $request);
         }
 
