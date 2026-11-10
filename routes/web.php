@@ -61,9 +61,9 @@ Route::get('/health', function () {
         'database' => $database,
     ], $database === 'ok' ? 200 : 503);
 })->name('health');
-Route::get('/reports/exports/{export}', [ReportController::class, 'download'])->name('reports.download');
-Route::get('/exports/{token}', [ImportController::class, 'download'])->name('exports.download');
-Route::get('/tv/sales', [PerformanceController::class, 'tv'])->name('tv.sales');
+Route::get('/reports/exports/{export}', [ReportController::class, 'download'])->middleware('throttle:public-token')->name('reports.download');
+Route::get('/exports/{token}', [ImportController::class, 'download'])->middleware('throttle:public-token')->name('exports.download');
+Route::get('/tv/sales', [PerformanceController::class, 'tv'])->middleware('throttle:tv')->name('tv.sales');
 
 Route::get('/fonts/arabic-400.woff2', function () {
     $path = base_path('node_modules/@fontsource/ibm-plex-sans-arabic/files/ibm-plex-sans-arabic-arabic-400-normal.woff2');
@@ -97,7 +97,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/imports/krypton', [ImportController::class, 'krypton'])->middleware('permission:imports.manage')->name('imports.krypton');
     Route::post('/imports', [ImportController::class, 'apply'])->middleware('permission:imports.manage')->name('imports.apply');
     Route::post('/imports/{batch}/undo', [ImportController::class, 'undo'])->middleware('permission:imports.manage')->name('imports.undo');
-    Route::post('/exports/customers', [ImportController::class, 'export'])->middleware('permission:customers.view,reports.export')->name('exports.customers');
+    Route::post('/exports/customers', [ImportController::class, 'export'])->middleware(['permission:customers.view,reports.export', 'throttle:exports'])->name('exports.customers');
     Route::get('/automations', [AutomationController::class, 'index'])->middleware('permission:automations.view,automations.manage')->name('automations');
     Route::post('/automations', [AutomationController::class, 'store'])->middleware('permission:automations.manage')->name('automations.store');
     Route::post('/automations/pause', [AutomationController::class, 'pause'])->middleware('permission:automations.manage')->name('automations.pause');
@@ -130,7 +130,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show'])->middleware('permission:orders.create,orders.view,orders.activate,jobs.schedule')->name('orders.show');
     Route::post('/orders/{order}/transition', [OrderController::class, 'transition'])->middleware('permission:orders.create,orders.activate,jobs.schedule')->name('orders.transition');
     Route::post('/orders/{order}/reserve', [OrderController::class, 'reserve'])->middleware('permission:inventory.reserve')->name('orders.reserve');
-    Route::get('/purchasing/export', [OrderController::class, 'export'])->middleware('permission:purchasing.create,inventory.view')->name('purchasing.export');
+    Route::get('/purchasing/export', [OrderController::class, 'export'])->middleware(['permission:purchasing.create,inventory.view', 'throttle:exports'])->name('purchasing.export');
     Route::post('/purchasing', [PurchasingController::class, 'store'])->middleware('permission:purchasing.create')->name('purchasing.store');
     Route::post('/purchasing/{purchaseOrder}/submit', [PurchasingController::class, 'submit'])->middleware('permission:purchasing.create')->name('purchasing.submit');
     Route::post('/purchasing/{purchaseOrder}/send', [PurchasingController::class, 'send'])->middleware('permission:purchasing.create')->name('purchasing.send');
@@ -226,7 +226,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::get('/calls/pop', [CallController::class, 'pop'])->middleware('permission:calls.log,calls.view')->name('calls.pop');
     Route::get('/calls/board', [CallController::class, 'board'])->middleware('permission:calls.view')->name('calls.board');
     Route::get('/calls', [CallController::class, 'index'])->middleware('permission:calls.log,calls.view')->name('calls');
-    Route::get('/performance/export', [PerformanceController::class, 'export'])->middleware('permission:commissions.view')->name('performance.export');
+    Route::get('/performance/export', [PerformanceController::class, 'export'])->middleware(['permission:commissions.view', 'throttle:exports'])->name('performance.export');
     Route::get('/performance', [PerformanceController::class, 'index'])->middleware('permission:commissions.view,targets.set')->name('performance');
     Route::post('/performance/targets', [PerformanceController::class, 'target'])->middleware('permission:targets.set')->name('performance.targets');
     Route::post('/performance/adjustments', [PerformanceController::class, 'adjust'])->middleware('permission:commissions.view')->name('performance.adjustments');
@@ -332,8 +332,12 @@ Route::middleware(['auth', 'account.security'])->group(function () {
         Route::put('/admin/roles/{role}', [RoleController::class, 'update'])->whereNumber('role')->name('admin.roles.update');
         Route::post('/admin/roles/{role}/clone', [RoleController::class, 'clone'])->whereNumber('role')->name('admin.roles.clone');
         Route::post('/admin/view-as', [ViewAsController::class, 'store'])->name('admin.view-as.store');
-        Route::delete('/admin/view-as', [ViewAsController::class, 'destroy'])->name('admin.view-as.stop');
     });
+
+    // Not behind users.manage: while viewing as someone, permissions are the viewed
+    // user's, so the "Stop viewing" button must work without them. It only clears
+    // the view-as marker from the caller's own session.
+    Route::delete('/admin/view-as', [ViewAsController::class, 'destroy'])->name('admin.view-as.stop');
 
     Route::get('/account/password', [AccountPasswordController::class, 'edit'])->name('password.required');
     Route::put('/account/password/required', [AccountPasswordController::class, 'update'])->name('password.required.update');

@@ -34,7 +34,7 @@ class AccountSecurityController extends Controller
         ]);
 
         $user = $request->user();
-        $user->replacePassword($validated['password']);
+        $user->replacePassword($validated['password'], $request->session()->getId());
         $audit->record('auth.password.changed', $user, ['reason' => 'account'], $request);
 
         return back()->with('status', __('ui.security.password_updated'));
