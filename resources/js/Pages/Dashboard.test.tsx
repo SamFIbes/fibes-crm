@@ -15,6 +15,8 @@ type Options = {
 
 const h = vi.hoisted(() => ({
     reload: vi.fn(),
+    setData: vi.fn(),
+    drawerFails: false,
     handlers: {} as Record<string, Array<() => void>>,
 }));
 
@@ -31,7 +33,7 @@ vi.mock('@inertiajs/react', () => ({
             };
         },
     },
-    useForm: () => ({ data: { keys: [], from: '', to: '' }, setData: vi.fn(), post: vi.fn(), processing: false }),
+    useForm: () => ({ data: { keys: [], from: '', to: '' }, setData: h.setData, post: vi.fn(), processing: false }),
     usePage: () => ({ props: { auth: { user: { name: 'Synthetic User' }, nav: [] } } }),
 }));
 vi.mock('@/components/shell/AppShell', () => ({ AppShell: ({ children }: { children: ReactNode }) => <>{children}</> }));
@@ -49,6 +51,13 @@ vi.mock('@/components/ui/page-header', () => ({
         </div>
     ),
 }));
+vi.mock('@/components/ui/drawer', () => {
+    if (h.drawerFails) {
+        throw new Error('chunk failed to load');
+    }
+
+    return { Drawer: () => null };
+});
 vi.mock('@/lib/i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
 const emit = (event: string) => act(() => (h.handlers[event] ?? []).forEach((fn) => fn()));
@@ -60,8 +69,10 @@ const setHidden = (value: boolean) => Object.defineProperty(document, 'hidden', 
 const last = (): Options => h.reload.mock.calls.at(-1)![0] as Options;
 const status = () => screen.getByTestId('dashboard-status').textContent;
 
-function mount() {
-    return render(<Dashboard home="sales" tiles={[]} choices={[]} from="2026-11-01" to="2026-11-10" refresh={5} attention={{ queues: [] }} />);
+function mount(props: { refresh?: number; from?: string } = {}) {
+    const refresh = 'refresh' in props ? props.refresh : 5;
+
+    return render(<Dashboard home="sales" tiles={[]} choices={[]} from={props.from ?? '2026-11-01'} to="2026-11-10" refresh={refresh as number} attention={{ queues: [] }} />);
 }
 
 describe('Dashboard polling', () => {
@@ -155,5 +166,43 @@ describe('Dashboard polling', () => {
         tick();
 
         expect(h.reload).not.toHaveBeenCalled();
+    });
+
+    it('falls back to 30 seconds when the refresh value is missing, instead of a 0 ms loop', () => {
+        mount({ refresh: undefined });
+        tick();
+        expect(h.reload).not.toHaveBeenCalled();
+
+        act(() => {
+            vi.advanceTimersByTime(25000);
+        });
+        expect(h.reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('puts the date inputs back in step when the period changes from the server', () => {
+        const view = mount();
+        h.setData.mockClear();
+        view.rerender(<Dashboard home="sales" tiles={[]} choices={[]} from="2026-10-01" to="2026-10-31" refresh={5} attention={{ queues: [] }} />);
+
+        const update = h.setData.mock.calls.at(-1)?.[0] as (data: Record<string, unknown>) => Record<string, unknown>;
+        expect(update({ keys: ['a'], from: '2026-11-01', to: '2026-11-10' })).toEqual({ keys: ['a'], from: '2026-10-01', to: '2026-10-31' });
+    });
+});
+
+describe('Choose tiles', () => {
+    afterEach(() => {
+        h.drawerFails = false;
+    });
+
+    it('says so when the tile settings cannot load, instead of doing nothing', async () => {
+        h.drawerFails = true;
+        mount();
+
+        await act(async () => {
+            screen.getByText('dashboard.edit_tiles').click();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(screen.getByTestId('tiles-failed')).toHaveTextContent('dashboard.tiles_failed');
     });
 });

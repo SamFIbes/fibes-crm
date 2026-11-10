@@ -12,11 +12,14 @@ const inputClass =
 export function PeriodBar({
     from,
     to,
+    applied,
     onChange,
     onSubmit,
 }: {
     from: string;
     to: string;
+    /** The period the figures on screen are for; the label shows this, not unsaved edits. */
+    applied?: { from: string; to: string };
     onChange: (field: PeriodField, value: string) => void;
     onSubmit: () => void;
 }) {
@@ -32,7 +35,7 @@ export function PeriodBar({
             <p className="inline-flex min-h-11 items-center gap-2 text-sm text-muted">
                 <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
                 <span className="sr-only">{t('dashboard.period')}</span>
-                <span className="font-semibold text-text" data-testid="period-label">{formatPeriod(from, to, locale)}</span>
+                <span className="font-semibold text-text" data-testid="period-label">{formatPeriod(applied?.from ?? from, applied?.to ?? to, locale)}</span>
             </p>
             <form
                 onSubmit={submit}

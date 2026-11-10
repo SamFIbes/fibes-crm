@@ -14,6 +14,15 @@ function colorAt(index: number): string {
 
 export function QueueLoad({ queues }: { queues: Queue[] }) {
     const { t } = useI18n();
+    const fullName = (key: string) => t(`dashboard.queue_${key}`);
+    // Not every queue has a short label; fall back to the full name, never the raw key.
+    const shortName = (key: string) => {
+        const short = t(`dashboard.short_${key}`);
+
+        return short === `dashboard.short_${key}` ? fullName(key) : short;
+    };
+    // "Name: count" pairs avoid plural rules ("1 items", Arabic number agreement).
+    const summary = queues.map((queue) => t('dashboard.chart_item', { queue: fullName(queue.key), count: queue.count })).join(t('dashboard.list_separator'));
     const total = queueTotal(queues);
     const max = queueMax(queues);
     const shares = queueShares(queues);
@@ -41,7 +50,8 @@ export function QueueLoad({ queues }: { queues: Queue[] }) {
                             <span
                                 key={share.key}
                                 className="h-full border-e-2 last:border-e-0"
-                                style={{ width: `${share.share * 100}%`, background: colorOf(share.key), borderColor: 'var(--side)' }}
+                                // A very small share would be thinner than its border and vanish.
+                                style={{ width: `${share.share * 100}%`, minWidth: 6, background: colorOf(share.key), borderColor: 'var(--side)' }}
                             />
                         ))}
                     </div>
@@ -50,18 +60,21 @@ export function QueueLoad({ queues }: { queues: Queue[] }) {
                     {queues.map((queue, index) => (
                         <li key={queue.key} className="flex items-center gap-2 py-2 text-sm">
                             <span className="fd-dot" style={{ background: colorAt(index) }} aria-hidden="true" />
-                            <span className="min-w-0 flex-1 truncate">{t(`dashboard.queue_${queue.key}`)}</span>
+                            <span className="min-w-0 flex-1 truncate">{fullName(queue.key)}</span>
                             <span className="tabular font-semibold" dir="ltr">{queue.count}</span>
                         </li>
                     ))}
                 </ul>
             </div>
             <figure className="card p-6 lg:col-span-8" data-testid="queue-chart">
-                <h3 className="text-sm font-semibold">{t('dashboard.waiting_by_queue')}</h3>
-                <figcaption className="sr-only">{t('dashboard.chart_desc', { count: total, queues: queues.length })}</figcaption>
-                <ul className="mt-6 grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.max(1, queues.length)}, minmax(0, 1fr))` }}>
+                <figcaption>
+                    <h3 className="text-sm font-semibold">{t('dashboard.waiting_by_queue')}</h3>
+                    <span className="sr-only" data-testid="queue-chart-desc">{t('dashboard.chart_desc', { list: summary })}</span>
+                </figcaption>
+                {/* The bars are a mouse shortcut. Screen readers get the caption above, and
+                    keyboard users get the same links, fully named, in the queue cards below. */}
+                <ul className="mt-6 grid gap-2" aria-hidden="true" data-testid="queue-bars" style={{ gridTemplateColumns: `repeat(${Math.max(1, queues.length)}, minmax(0, 1fr))` }}>
                     {queues.map((queue, index) => {
-                        const name = t(`dashboard.queue_${queue.key}`);
                         const scale = max > 0 && queue.count > 0 ? Math.max(0.04, queue.count / max) : 0;
                         const top = queue.key === topKey;
 
@@ -69,7 +82,8 @@ export function QueueLoad({ queues }: { queues: Queue[] }) {
                             <li key={queue.key} className="min-w-0">
                                 <Link
                                     href={queue.href}
-                                    aria-label={t('dashboard.bar_label', { queue: name, count: queue.count })}
+                                    tabIndex={-1}
+                                    title={fullName(queue.key)}
                                     className="flex min-h-11 min-w-0 flex-col items-center gap-2 rounded-tile px-1 py-2 hover:bg-well focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 >
                                     <span className="tabular text-sm font-semibold" dir="ltr">{queue.count}</span>
@@ -80,7 +94,7 @@ export function QueueLoad({ queues }: { queues: Queue[] }) {
                                             style={{ '--fd-scale': scale, '--i': index } as CSSProperties}
                                         />
                                     </span>
-                                    <span className="fd-2xs block w-full truncate text-center text-faint">{t(`dashboard.short_${queue.key}`)}</span>
+                                    <span className="fd-2xs block w-full truncate text-center text-faint">{shortName(queue.key)}</span>
                                 </Link>
                             </li>
                         );

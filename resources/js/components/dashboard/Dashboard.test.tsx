@@ -2,8 +2,10 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import type { AnchorHTMLAttributes, ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { KpiStrip } from '@/components/dashboard/KpiStrip';
+import { PeriodBar } from '@/components/dashboard/PeriodBar';
 import { QueueList } from '@/components/dashboard/QueueList';
 import { QueueLoad } from '@/components/dashboard/QueueLoad';
+import { SectionGrid } from '@/components/dashboard/SectionGrid';
 import type { AttentionItem, Queue, Tile } from '@/components/dashboard/types';
 import { I18nProvider } from '@/lib/i18n';
 
@@ -26,7 +28,16 @@ const flat: Record<string, string> = {
     'dashboard.all_clear': 'All clear',
     'dashboard.all_clear_body': 'Nothing is waiting.',
     'dashboard.waiting_by_queue': 'Waiting by queue',
-    'dashboard.chart_desc': ':count items waiting across :queues queues',
+    'dashboard.chart_desc': 'Waiting by queue: :list',
+    'dashboard.chart_item': ':queue: :count',
+    'dashboard.list_separator': ', ',
+    'dashboard.queue_promises': 'Promises past their date',
+    'dashboard.sections': 'All sections',
+    'dashboard.period': 'Period',
+    'reports.from': 'From',
+    'reports.to': 'To',
+    'reports.apply': 'Apply',
+    'nav.tickets': 'Tickets',
     'dashboard.bar_label': ':queue: :count waiting',
     'dashboard.queue_tickets_unassigned': 'Unassigned tickets',
     'dashboard.queue_tickets_breached': 'Breached tickets',
@@ -134,16 +145,18 @@ describe('QueueLoad', () => {
         expect(screen.queryByTestId('queue-share-bar')).toBeNull();
     });
 
-    it('labels every bar with the queue name and count and links to the queue', () => {
-        renderWith(<QueueLoad queues={queues} />);
+    it('keeps the bars as a mouse shortcut only, so keyboard and screen readers get one fully named link per queue', () => {
+        const { container } = renderWith(<QueueLoad queues={queues} />);
+        const bars = screen.getByTestId('queue-bars');
+        const links = Array.from(bars.querySelectorAll('a'));
 
-        const first = screen.getByRole('link', { name: 'Unassigned tickets: 3 waiting' });
-        const second = screen.getByRole('link', { name: 'Breached tickets: 1 waiting' });
-        const third = screen.getByRole('link', { name: 'Approvals: 0 waiting' });
-
-        expect(first.getAttribute('href')).toBe('/queues/tickets_unassigned');
-        expect(second.getAttribute('href')).toBe('/queues/tickets_breached');
-        expect(third.getAttribute('href')).toBe('/queues/approvals');
+        expect(bars.getAttribute('aria-hidden')).toBe('true');
+        expect(links.map((link) => link.getAttribute('href'))).toEqual(['/queues/tickets_unassigned', '/queues/tickets_breached', '/queues/approvals']);
+        expect(links.every((link) => link.getAttribute('tabindex') === '-1')).toBe(true);
+        expect(links.some((link) => link.hasAttribute('aria-label'))).toBe(false);
+        expect(links[0]?.getAttribute('title')).toBe('Unassigned tickets');
+        expect(screen.queryAllByRole('link')).toHaveLength(0);
+        expect(container.querySelector('[data-top="true"]')).not.toBeNull();
     });
 
     it('marks only the largest queue as the top bar', () => {
@@ -151,13 +164,58 @@ describe('QueueLoad', () => {
         const tops = container.querySelectorAll('[data-top="true"]');
 
         expect(tops).toHaveLength(1);
-        expect(screen.getByRole('link', { name: 'Unassigned tickets: 3 waiting' }).contains(tops[0] ?? null)).toBe(true);
+        expect(container.querySelector('a[href="/queues/tickets_unassigned"]')?.contains(tops[0] ?? null)).toBe(true);
     });
 
-    it('describes the chart for assistive technology', () => {
-        renderWith(<QueueLoad queues={queues} />);
+    it('describes the chart as name and count pairs, with no plural words to get wrong', () => {
+        renderWith(<QueueLoad queues={[queue('tickets_unassigned', 1), queue('approvals', 0)]} />);
 
-        expect(screen.getByText('4 items waiting across 3 queues')).toBeTruthy();
+        expect(screen.getByTestId('queue-chart-desc').textContent).toBe('Waiting by queue: Unassigned tickets: 1, Approvals: 0');
+    });
+
+    it('puts the caption first in the figure, holding the chart heading', () => {
+        renderWith(<QueueLoad queues={queues} />);
+        const figure = screen.getByTestId('queue-chart');
+
+        expect(figure.firstElementChild?.tagName).toBe('FIGCAPTION');
+        expect(figure.querySelectorAll('figcaption')).toHaveLength(1);
+        expect(within(figure.firstElementChild as HTMLElement).getByRole('heading', { name: 'Waiting by queue' })).toBeTruthy();
+    });
+
+    it('falls back to the full queue name when there is no short label', () => {
+        renderWith(<QueueLoad queues={[queue('promises', 2)]} />);
+        const bars = screen.getByTestId('queue-bars');
+
+        expect(bars.textContent).toContain('Promises past their date');
+        expect(bars.textContent).not.toContain('dashboard.short_');
+    });
+
+    it('keeps a tiny share visible in the share bar', () => {
+        renderWith(<QueueLoad queues={[queue('tickets_unassigned', 999), queue('approvals', 1)]} />);
+        const segments = Array.from(screen.getByTestId('queue-share-bar').children) as HTMLElement[];
+
+        expect(segments).toHaveLength(2);
+        expect(segments[1]?.style.minWidth).toBe('6px');
+    });
+});
+
+describe('PeriodBar', () => {
+    it('labels the period on screen, not dates typed but not applied yet', () => {
+        renderWith(<PeriodBar from="2026-01-01" to="2026-01-31" applied={{ from: '2026-11-01', to: '2026-11-10' }} onChange={() => {}} onSubmit={() => {}} />);
+        const label = screen.getByTestId('period-label').textContent ?? '';
+
+        expect(label).toContain('Nov');
+        expect(label).not.toContain('Jan');
+        expect((screen.getByLabelText('From') as HTMLInputElement).value).toBe('2026-01-01');
+    });
+});
+
+describe('SectionGrid', () => {
+    it('uses a heading that makes sense on its own', () => {
+        const Icon = () => null;
+        renderWith(<SectionGrid links={[{ key: 'tickets', href: '/tickets', icon: Icon }]} />);
+
+        expect(screen.getByRole('heading', { name: 'All sections' })).toBeTruthy();
     });
 });
 

@@ -50,6 +50,7 @@ export default function Dashboard({
     const [reloading, setReloading] = useState(false);
     const [failed, setFailed] = useState(false);
     const [recovered, setRecovered] = useState(false);
+    const [drawerFailed, setDrawerFailed] = useState(false);
     const failedRef = useRef(false);
     const inFlight = useRef(0);
     const queues = attention?.queues ?? [];
@@ -109,10 +110,18 @@ export default function Dashboard({
 
             reload();
         };
-        const timer = window.setInterval(tick, Math.max(5, refresh) * 1000);
+        // A missing or bad value must not become a 0 ms loop.
+        const seconds = Number.isFinite(refresh) ? Math.max(5, refresh) : 30;
+        const timer = window.setInterval(tick, seconds * 1000);
 
         return () => window.clearInterval(timer);
     }, [refresh, reload]);
+
+    // Back/forward or a server redirect can change the period; keep the inputs in step.
+    const { setData } = layout;
+    useEffect(() => {
+        setData((data) => ({ ...data, from, to }));
+    }, [from, to, setData]);
 
     const chooseTiles = () => {
         if (TileDrawer) {
@@ -121,10 +130,14 @@ export default function Dashboard({
             return;
         }
 
-        void import('@/components/ui/drawer').then((mod) => {
-            setTileDrawer(() => mod.Drawer);
-            setEditing(true);
-        });
+        setDrawerFailed(false);
+        void import('@/components/ui/drawer')
+            .then((mod) => {
+                setTileDrawer(() => mod.Drawer);
+                setEditing(true);
+            })
+            // Offline, or the file changed in a deploy: say so instead of doing nothing.
+            .catch(() => setDrawerFailed(true));
     };
 
     return (
@@ -149,6 +162,11 @@ export default function Dashboard({
                                     <Button type="button" variant="ghost" size="sm" onClick={reload}>{t('dashboard.retry')}</Button>
                                 </span>
                             ) : null}
+                            {drawerFailed ? (
+                                <span role="alert" className="inline-flex min-h-11 items-center rounded-full bg-bad-bg px-4 text-sm font-semibold text-bad" data-testid="tiles-failed">
+                                    {t('dashboard.tiles_failed')}
+                                </span>
+                            ) : null}
                             <Button type="button" variant="outline" onClick={chooseTiles}>{t('dashboard.edit_tiles')}</Button>
                             <Button type="button" onClick={() => router.get('/reports', { from, to })}>{t('reports.open')}</Button>
                         </div>
@@ -160,6 +178,7 @@ export default function Dashboard({
                 <PeriodBar
                     from={layout.data.from}
                     to={layout.data.to}
+                    applied={{ from, to }}
                     onChange={(field, value) => layout.setData(field, value)}
                     onSubmit={() => router.get('/dashboard', { from: layout.data.from, to: layout.data.to }, { preserveState: true })}
                 />

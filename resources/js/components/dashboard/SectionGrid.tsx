@@ -17,7 +17,7 @@ export function SectionGrid({ links }: { links: SectionLink[] }) {
 
     return (
         <section aria-labelledby="fd-go-to-heading" data-testid="dashboard-sections" className="card mt-8 p-6">
-            <h2 id="fd-go-to-heading" className="text-lg font-semibold">{t('dashboard.go_to')}</h2>
+            <h2 id="fd-go-to-heading" className="text-lg font-semibold">{t('dashboard.sections')}</h2>
             <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                 {links.map((item) => {
                     const Icon = item.icon;
