@@ -4,6 +4,8 @@
 
 A 2FA recovery code can no longer be used twice by two sign-in requests at the same moment, and an old request can no longer bring a used code back.
 
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/40
+
 Sign-in now takes the same time whether or not an email has an account, so response timing no longer reveals who has an account.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/39
