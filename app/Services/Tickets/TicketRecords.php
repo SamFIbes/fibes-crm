@@ -166,7 +166,8 @@ class TicketRecords
     public function present(Ticket $ticket, bool $detail = false): array
     {
         $ticket->loadMissing(['customer:id,name_en,name_ar,account_no', 'category', 'assignee:id,name', 'service:id,service_type', 'customer.area', 'tier', 'incident']);
-        $sla = $this->clock->snapshot($ticket);
+        $slaConfigured = $ticket->response_due_at !== null && $ticket->resolve_due_at !== null;
+        $sla = $slaConfigured ? $this->clock->snapshot($ticket) : null;
         $row = [
             'id' => $ticket->id,
             'number' => $ticket->number,
@@ -202,6 +203,7 @@ class TicketRecords
                 'title' => $ticket->incident->title,
             ] : null,
             'sla' => $sla,
+            'sla_configured' => $slaConfigured,
         ];
 
         if ($detail) {

@@ -11,7 +11,7 @@ export function Avatar({ name, size = 28, className }: { name: string; size?: nu
     return (
         <span
             aria-hidden
-            className={cn('inline-grid shrink-0 place-items-center rounded-full bg-brand-gradient text-2xs font-bold text-navy', className)}
+            className={cn('inline-grid shrink-0 place-items-center rounded-full bg-good-bg text-2xs font-bold text-good', className)}
             style={{ width: size, height: size }}
         >
             {initials || '·'}

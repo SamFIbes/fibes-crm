@@ -35,12 +35,12 @@ export function GuestLayout({ children }: { children: ReactNode }) {
             </div>
             <ParticleField />
             <div className="guest-grid relative z-10">
-                <aside className="relative hidden text-white lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-12 xl:px-16">
-                    <div dir="ltr" className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
+                <aside className="relative hidden text-side-text lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-12 xl:px-16">
+                    <div dir="ltr" className="text-sm font-semibold uppercase tracking-[0.08em] text-side-dim">
                         FIBES CRM
                     </div>
                     <div className="my-auto max-w-xl py-10">
-                        <BrandLogo variant="full" tone="dark" height={128} animated />
+                        <BrandLogo variant="full" tone="dark" height={72} animated />
                         <motion.p
                             initial={reduce ? false : { opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -51,7 +51,7 @@ export function GuestLayout({ children }: { children: ReactNode }) {
                         </motion.p>
                         <div className="guest-rule" aria-hidden />
                     </div>
-                    <p dir="ltr" className="text-sm font-medium tracking-wide text-white/55">
+                    <p dir="ltr" className="text-sm font-medium tracking-wide text-side-dim">
                         FIBES
                     </p>
                 </aside>
@@ -65,7 +65,7 @@ export function GuestLayout({ children }: { children: ReactNode }) {
                     </header>
                     <div id="content" className="m-auto w-full max-w-md py-6">
                         <div className="mb-8 lg:hidden">
-                            <BrandLogo variant="full" tone="auto" height={72} animated />
+                            <BrandLogo variant="full" tone="auto" height={64} animated />
                         </div>
                         {children}
                     </div>

@@ -1,12 +1,9 @@
-@import '@fontsource-variable/inter';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
-@import '@fontsource/ibm-plex-sans-arabic/latin-400.css';
+/* Fibes.net brand: Figtree, Poppins, Cairo. Files in public/brand/fonts. */
+@import './fonts.css';
 @import 'tailwindcss';
 @import './tokens.css';
 @import './guest.css';
+@import './dashboard.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -48,6 +45,9 @@
   --color-side-hover: var(--side-hover);
   --color-sidebar-accent: var(--side-hover);
   --color-side-line: var(--side-line);
+  --color-side-pill: var(--side-pill);
+  --color-on-side-pill: var(--on-side-pill);
+  --color-wa: var(--wa);
   --color-good: var(--good);
   --color-good-bg: var(--good-bg);
   --color-warn: var(--warn);
@@ -86,13 +86,16 @@
     scroll-padding-top: 5rem;
     font-family: var(--font-latin);
     font-size: 14px;
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   html[lang='ar'] { font-family: var(--font-arabic); }
+  h1, h2, h3, .text-display { font-family: var(--font-heading); }
+  html[lang='ar'] h1, html[lang='ar'] h2, html[lang='ar'] h3, html[lang='ar'] .text-display { font-family: var(--font-arabic); }
   html.is-dragging, html.is-dragging body { overflow-x: clip; overscroll-behavior: none; }
   html.is-dragging, html.is-dragging * { cursor: grabbing !important; user-select: none; }
-  body {
+  html, body {
     overflow-x: clip;
     background: var(--bg);
     color: var(--text);
@@ -108,15 +111,86 @@
   }
   #app { position: relative; z-index: 1; }
   :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 8px; }
-  .tabular { font-variant-numeric: tabular-nums; }
+  .tabular, .num { font-variant-numeric: tabular-nums; }
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
+  select,
+  textarea {
+    border-radius: 14px;
+  }
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+    outline: none;
+  }
 }
 
 @layer components {
   .card { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow); border: 1px solid var(--line); }
+  .icon-btn {
+    display: inline-grid;
+    width: 46px;
+    height: 46px;
+    flex: none;
+    place-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+  .icon-btn:hover { background: var(--card-2); }
+  @keyframes page-enter {
+    from { transform: translateY(8px); }
+    to { transform: translateY(0); }
+  }
+  .page-enter { animation: page-enter 0.22s var(--ease-out); }
+  @media (prefers-reduced-motion: reduce) {
+    .page-enter { animation: none; }
+  }
+  @media (max-width: 480px) {
+    button, select, input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']), textarea {
+      min-height: 44px;
+    }
+  }
+  a[href*='wa.me'] {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: var(--wa);
+    color: #fff;
+    font-weight: 650;
+    font-size: 13px;
+    text-decoration: none;
+  }
+  html.dark a[href*='wa.me'] { color: #052812; }
   .text-gradient { background: var(--brand-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .bg-brand-gradient { background: var(--brand-gradient); }
   [dir='rtl'] .flip-rtl { transform: scaleX(-1); }
   [data-brand] { direction: ltr; }
+  .topology-flow {
+    --topo-active: #8fceb0;
+    --topo-recent: #e7b56a;
+    --topo-error: #e08b78;
+    background: var(--card-2);
+  }
+  html.dark .topology-flow {
+    --topo-active: #3cc0ad;
+    --topo-recent: #f2aa5f;
+    --topo-error: #f07a5f;
+    background: var(--card-2);
+  }
+  .topology-flow .react-flow__attribution {
+    background: transparent;
+    color: var(--faint);
+    font-size: 10px;
+  }
+  .topology-flow .react-flow__node { cursor: default; }
+  .topology-flow .react-flow__handle { opacity: 0; pointer-events: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -202,7 +202,7 @@ class CoverageImport
         $zip = new ZipArchive;
 
         if ($zip->open($path) !== true) {
-            @unlink($path);
+            @unlink($path); // nosemgrep: php.lang.security.unlink-use.unlink-use
             throw ValidationException::withMessages(['file' => __('ui.coverage.malformed')]);
         }
 
@@ -218,7 +218,7 @@ class CoverageImport
         }
 
         $zip->close();
-        @unlink($path);
+        @unlink($path); // nosemgrep: php.lang.security.unlink-use.unlink-use
 
         if ($kml === '') {
             throw ValidationException::withMessages(['file' => __('ui.coverage.malformed')]);

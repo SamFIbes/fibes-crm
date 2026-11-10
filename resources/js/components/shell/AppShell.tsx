@@ -1,8 +1,7 @@
 import { usePage } from '@inertiajs/react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { router } from '@inertiajs/react';
 import { useEffect, useState, type ReactNode } from 'react';
-import { page as pageMotion, prefersReducedMotion } from '@/lib/motion';
+import { prefersReducedMotion } from '@/lib/motion';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { SharedProps } from '@/types';
@@ -57,13 +56,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {t('a11y.skip')}
             </a>
             <Sidebar collapsed={collapsed} mobileOpen={mobileOpen} onToggle={toggle} onClose={() => setMobileOpen(false)} />
-            <div className={cn('transition-[padding] duration-300', collapsed ? 'lg:ps-[96px]' : 'lg:ps-[276px]')}>
-                <div className="mx-auto max-w-[1640px] px-4 pb-10 sm:px-6">
+            <div className={cn('min-w-0 transition-[padding] duration-300', collapsed ? 'lg:ps-[76px]' : 'lg:ps-[248px]')}>
+                <div className="mx-auto min-w-0 max-w-[1640px] px-[clamp(16px,1.8vw,30px)] pb-14 pt-5">
                     <TopBar onOpenMenu={() => setMobileOpen(true)} />
+                    <main id="content">
                     {inertia.props.auth.view_as ? (
                         <p className="mb-3 flex items-center justify-between gap-3 rounded-tile border border-line bg-card px-4 py-2 text-sm">
                             <span>{t('admin.viewing_as', { name: inertia.props.auth.view_as.name })}</span>
-                            <button type="button" className="font-semibold text-accent-ink" onClick={() => router.delete('/admin/view-as')}>
+                            <button type="button" className="min-h-11 font-semibold text-accent-ink" onClick={() => router.delete('/admin/view-as')}>
                                 {t('admin.stop_viewing')}
                             </button>
                         </p>
@@ -71,12 +71,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                     {typeof inertia.props.security?.two_factor_grace_days === 'number' && inertia.props.security.two_factor_grace_days > 0 ? (
                         <p className="mb-3 rounded-tile border border-line bg-card px-4 py-2 text-sm">{t('security.grace_banner', { days: inertia.props.security.two_factor_grace_days })}</p>
                     ) : null}
-                    <main id="content">
-                        <AnimatePresence mode="wait" initial={false}>
-                            <motion.div key={inertia.url} variants={reduce ? undefined : pageMotion} initial={reduce ? false : 'initial'} animate="enter" exit="exit">
-                                {children}
-                            </motion.div>
-                        </AnimatePresence>
+                        <div key={inertia.url} className={reduce ? undefined : 'page-enter'}>
+                            {children}
+                        </div>
                     </main>
                 </div>
             </div>

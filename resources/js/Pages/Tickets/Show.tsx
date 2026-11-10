@@ -40,7 +40,10 @@ type Ticket = {
     assignee: string | null;
     tier: { level: number; name_en: string; name_ar: string } | null;
     incident: { id: number; number: string; title: string } | null;
-    sla: { response: { state: string; remaining_seconds: number }; resolve: { state: string; remaining_seconds: number } };
+    service_type?: string | null;
+    area?: { name_en: string; name_ar: string } | null;
+    sla: { response: { state: string; remaining_seconds: number }; resolve: { state: string; remaining_seconds: number } } | null;
+    sla_configured?: boolean;
     timeline: TimelineItem[];
     files: { id: number; name: string; download_url: string }[];
     checks?: { id: number; label_en: string; label_ar: string; done: boolean }[];
@@ -90,7 +93,7 @@ export default function TicketShow({
         <AppShell>
             <Head title={ticket.subject} />
             <div data-testid="ticket-page">
-                <p className="text-xs text-faint"><Link href="/tickets">{t('tickets.title')}</Link> · <span dir="ltr">{ticket.number}</span></p>
+                <p className="text-xs text-muted"><Link href="/tickets">{t('tickets.title')}</Link> · <span dir="ltr">{ticket.number}</span></p>
                 <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h1 className="text-3xl font-semibold tracking-tight">{ticket.subject}</h1>
@@ -100,11 +103,18 @@ export default function TicketShow({
                             {' · '}{t(`tickets.channel_${ticket.channel}`)}
                         </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex max-w-full flex-wrap gap-2">
                         <Badge tone={ticket.priority === 'P1' ? 'bad' : 'info'}>{ticket.priority}</Badge>
-                        <Badge tone={ticket.sla.resolve.state === 'breached' ? 'bad' : ticket.sla.resolve.state === 'warning' ? 'warn' : 'neutral'}>
-                            {t('tickets.resolve')} {ticket.sla.resolve.state}
-                        </Badge>
+                        {ticket.sla ? (
+                            <>
+                                <Badge tone={ticket.sla.response.state === 'breached' ? 'bad' : ticket.sla.response.state === 'warning' ? 'warn' : ticket.sla.response.state === 'met' ? 'good' : 'neutral'}>
+                                    {t('tickets.response')} {t(`tickets.${ticket.sla.response.state === 'ok' ? 'on_time' : ticket.sla.response.state}`)}
+                                </Badge>
+                                <Badge tone={ticket.sla.resolve.state === 'breached' ? 'bad' : ticket.sla.resolve.state === 'warning' ? 'warn' : ticket.sla.resolve.state === 'met' ? 'good' : 'neutral'}>
+                                    {t('tickets.resolve')} {t(`tickets.${ticket.sla.resolve.state === 'ok' ? 'on_time' : ticket.sla.resolve.state}`)}
+                                </Badge>
+                            </>
+                        ) : <Badge tone="neutral">{t('tickets.sla_missing')}</Badge>}
                     </div>
                 </div>
                 {incidents.map((incident) => (
@@ -120,8 +130,9 @@ export default function TicketShow({
                         <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/tickets/${ticket.id}/whatsapp`, {}, { preserveScroll: true })}>{t('tickets.wa_send')}</Button>
                     </div>
                 ) : null}
+                <p className="mt-3 text-sm text-muted">{ticket.service_type ? t(`customers.${ticket.service_type}`) : t('tickets.not_on_file')}{ticket.area ? ` · ${locale === 'ar' ? ticket.area.name_ar : ticket.area.name_en}` : ''}</p>
                 {can_move ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="mt-4 flex max-w-full flex-wrap gap-2">
                         {statuses.map((status) => (
                             <Button key={status} type="button" size="sm" variant={ticket.status === status ? 'default' : 'outline'} onClick={() => router.patch(`/tickets/${ticket.id}/status`, { status }, { preserveScroll: true })}>
                                 {t(`tickets.status_${status}`)}
