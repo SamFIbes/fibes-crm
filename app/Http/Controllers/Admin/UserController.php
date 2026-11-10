@@ -12,8 +12,10 @@ use App\Services\Auth\SessionRegistry;
 use App\Support\Access\AccessGate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -41,6 +43,7 @@ class UserController extends Controller
     public function store(Request $request, AuditLogger $audit): RedirectResponse
     {
         $data = $this->validated($request);
+        $this->guardSuperAdminGrant($request, $data);
         $user = User::query()->create([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -83,7 +86,9 @@ class UserController extends Controller
 
     public function update(Request $request, User $user, AuditLogger $audit, SessionRegistry $sessions): RedirectResponse
     {
+        $this->guardSuperAdminTarget($request, $user);
         $data = $this->validated($request, $user);
+        $this->guardSuperAdminGrant($request, $data);
 
         if ($request->user()->is($user) && $this->rolesChanged($user, $data['role_ids'])) {
             return back()->withErrors(['role_ids' => __('ui.admin.own_role')]);
@@ -102,6 +107,12 @@ class UserController extends Controller
             'extension' => $data['extension'] ?? null,
         ]);
 
+        $deactivating = $user->isDirty('is_active') && ! $user->is_active;
+
+        if ($deactivating) {
+            $user->setRememberToken(Str::random(60));
+        }
+
         if (! empty($data['password'])) {
             $user->must_change_password = true;
             $user->password = $data['password'];
@@ -111,6 +122,11 @@ class UserController extends Controller
 
         if (! $request->user()->is($user)) {
             $this->syncAccess($request, $user, $data);
+        }
+
+        if ($deactivating) {
+            $sessions->forUser($user->id)->each(fn (object $row) => $sessions->delete((string) $row->id));
+            $audit->record('auth.session.revoked', $request->user(), ['user_id' => $user->id, 'scope' => 'deactivated'], $request);
         }
 
         if ($request->boolean('revoke_sessions')) {
@@ -143,6 +159,34 @@ class UserController extends Controller
             'revoke_sessions' => ['sometimes', 'boolean'],
             'extension' => ['nullable', 'string', 'max:20', Rule::unique('users', 'extension')->ignore($user?->id)],
         ]);
+    }
+
+    /**
+     * Only a Super Admin may change a Super Admin's account (email, password,
+     * activation, roles). Otherwise users.manage would let someone take over
+     * the top account and with it every permission.
+     */
+    private function guardSuperAdminTarget(Request $request, User $target): void
+    {
+        abort_if($target->isSuperAdmin() && ! $request->user()->isSuperAdmin(), 403);
+    }
+
+    /**
+     * Only a Super Admin may hand out the Super Admin role.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function guardSuperAdminGrant(Request $request, array $data): void
+    {
+        if ($request->user()->isSuperAdmin()) {
+            return;
+        }
+
+        $grants = Role::query()->where('key', 'super_admin')->whereIn('id', $data['role_ids'] ?? [])->exists();
+
+        if ($grants) {
+            throw ValidationException::withMessages(['role_ids' => __('ui.admin.super_admin_only')]);
+        }
     }
 
     /**
