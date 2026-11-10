@@ -7,9 +7,7 @@ it('configures Apache to build redirects from the request, not its internal port
 
     expect($conf)->toContain('UseCanonicalName Off')
         ->toContain('UseCanonicalPhysicalPort Off')
-        ->toContain('SetEnvIf X-Forwarded-Proto "^https$" FIBES_FORWARDED_HTTPS')
-        ->toContain('Header always edit Location')
-        ->and((string) file_get_contents(base_path('Dockerfile.railway')))->toContain('headers')
+        ->toContain('ServerName https://localhost:443')
         ->and(json_decode((string) file_get_contents(base_path('railway.json')), true)['build']['dockerfilePath'])->toBe('Dockerfile.railway');
 });
 
@@ -30,7 +28,7 @@ it('keeps Apache redirects on https without the container port', function () {
 
     expect($rows['dir-https'])->toBe(['status' => '301', 'location' => 'https://www.fibes.io/build/'])
         ->and($rows['slash-https'])->toBe(['status' => '301', 'location' => 'https://www.fibes.io/storage'])
-        ->and($rows['host-port-https'])->toBe(['status' => '301', 'location' => 'https://www.fibes.io/build/'])
-        ->and($rows['dir-http']['location'])->toBe('http://www.fibes.io/build/')
+        ->and($rows['other-host'])->toBe(['status' => '301', 'location' => 'https://fibes-crm.up.railway.app/build/'])
+        ->and($rows['no-forwarded-proto'])->toBe(['status' => '301', 'location' => 'https://www.fibes.io/build/'])
         ->and($rows['app-https']['status'])->toBe('200');
 });
