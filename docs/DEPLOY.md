@@ -20,3 +20,9 @@ FIBES_DEPLOY_EXECUTE=1 FIBES_DEPLOY_HEALTH_URL=http://127.0.0.1/health scripts/d
 ## What was tested here
 
 The automated test sets `FIBES_DEPLOY_SIMULATE=1` and a health URL that does not answer. The script writes the new tag, sees the failed health check, puts the previous tag back, and exits. No server is contacted.
+
+## Trusted proxies
+
+The app only believes `X-Forwarded-For`, `-Proto`, `-Host` and `-Port` when the request comes straight from a trusted proxy (`config/trustedproxy.php`). The default is Railway's edge (`100.0.0.0/8`), loopback and private networks. Set `TRUSTED_PROXIES` (a comma-separated list of IPs or CIDRs) to change it. `TRUSTED_PROXIES=*` brings back "trust everyone" as a temporary escape hatch.
+
+After a deploy, `curl -sI https://<host>/login | grep -i strict-transport-security` should print a header. If it doesn't, the app didn't recognise the proxy as trusted.

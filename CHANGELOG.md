@@ -2,6 +2,8 @@
 
 ## 2026-11-10
 
+The app no longer believes forwarded IP and https headers from just anyone. It only trusts Railway's proxy and local or private networks, so someone can't fake their address to get around sign-in limits. TRUSTED_PROXIES can change the list.
+
 The production Docker image (docker-compose prod and staging) no longer re-runs the database seeder on every start. It seeds only when FIBES_RUN_SEED=true, the same rule as the Render and Railway start scripts.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/33
