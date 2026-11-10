@@ -4,6 +4,8 @@
 
 When a Super Admin is viewing the CRM as another person, the Stop viewing button now works instead of showing an error. Signing out during view-as is now written to the audit log too.
 
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/38
+
 The sales TV feed, the automations ping, export download links and the Meta/WhatsApp verify endpoints now have rate limits, so tokens and keys can't be guessed by brute force. A real TV screen keeps refreshing normally.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/37
