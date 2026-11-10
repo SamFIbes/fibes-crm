@@ -4,6 +4,8 @@
 
 Customer, report, commission and purchasing CSV exports now make sure a name or value starting with = + - or @ shows as plain text in Excel instead of running as a formula.
 
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/26
+
 Sending a stock request to ERPNext can no longer create the same Material Request twice. If a first try reached ERPNext but the answer got lost, the retry now finds and reuses that document instead of making a new one.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/25
