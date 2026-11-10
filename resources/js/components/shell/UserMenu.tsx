@@ -18,9 +18,9 @@ export function UserMenu() {
         <DropdownMenu>
             <DropdownMenuTrigger
                 data-testid="user-menu"
-                className="inline-flex h-10 items-center gap-2 rounded-lg px-1.5 text-sm transition-colors duration-200 hover:bg-secondary"
+                className="inline-flex h-[46px] items-center gap-2 rounded-full border border-line bg-card px-1.5 pe-3 text-sm font-semibold shadow-card"
             >
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-gradient text-xs font-semibold text-[#0E0F2D]">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-good-bg text-xs font-bold text-good">
                     {initials(user.name)}
                 </span>
                 <span className="hidden max-w-32 truncate text-start md:inline">{user.name}</span>

@@ -44,6 +44,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TechController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TopologyController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -99,6 +100,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/imports/{batch}/undo', [ImportController::class, 'undo'])->middleware('permission:imports.manage')->name('imports.undo');
     Route::post('/exports/customers', [ImportController::class, 'export'])->middleware('permission:customers.view,reports.export')->name('exports.customers');
     Route::get('/automations', [AutomationController::class, 'index'])->middleware('permission:automations.view,automations.manage')->name('automations');
+    Route::get('/topology', [TopologyController::class, 'index'])->middleware('permission:settings.view,settings.manage,automations.view')->name('topology');
     Route::post('/automations', [AutomationController::class, 'store'])->middleware('permission:automations.manage')->name('automations.store');
     Route::post('/automations/pause', [AutomationController::class, 'pause'])->middleware('permission:automations.manage')->name('automations.pause');
     Route::post('/automations/webhooks', [AutomationController::class, 'webhook'])->middleware('permission:automations.manage')->name('automations.webhooks');
@@ -289,6 +291,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::post('/approvals/{approval}/approve', [ApprovalController::class, 'approve'])->middleware('permission:approvals.decide')->name('approvals.approve');
     Route::post('/approvals/{approval}/reject', [ApprovalController::class, 'reject'])->middleware('permission:approvals.decide')->name('approvals.reject');
     Route::get('/billing', [BillingController::class, 'index'])->middleware('permission:invoices.view,invoices.view_balance,billing.view_amounts')->name('billing');
+    Route::get('/billing/lookup', [BillingController::class, 'lookup'])->middleware('permission:invoices.view,payments.record,payments.request')->name('billing.lookup');
     Route::post('/billing/run', [BillingController::class, 'run'])->middleware('permission:invoices.issue')->name('billing.run');
     Route::post('/billing/refunds', [BillingController::class, 'refund'])->middleware('permission:payments.reverse')->name('billing.refunds');
     Route::post('/payments', [PaymentController::class, 'store'])->middleware('permission:payments.record,payments.request')->name('payments.store');

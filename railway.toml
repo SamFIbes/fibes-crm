@@ -1,0 +1,11 @@
+# Railway builds the same single-container image used for any one-process host.
+# nginx binds $PORT. /health checks the database. See README → Deploy on Railway.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.render"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

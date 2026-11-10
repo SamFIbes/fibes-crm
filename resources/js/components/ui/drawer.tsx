@@ -53,7 +53,7 @@ export function Drawer({
                                         <Dialog.Title className="text-xl font-semibold tracking-tight">{title}</Dialog.Title>
                                         {description ? <Dialog.Description className="mt-0.5 text-sm text-muted">{description}</Dialog.Description> : <Dialog.Description className="sr-only">{title}</Dialog.Description>}
                                     </div>
-                                    <Dialog.Close className="grid size-8 shrink-0 place-items-center rounded-[10px] text-muted transition hover:bg-well hover:text-text" aria-label={t('nav.close_menu')}>
+                                    <Dialog.Close className="grid size-11 shrink-0 place-items-center rounded-[10px] text-muted transition hover:bg-well hover:text-text" aria-label={t('nav.close_menu')}>
                                         <X className="size-4" />
                                     </Dialog.Close>
                                 </div>
