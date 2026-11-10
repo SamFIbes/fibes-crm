@@ -4,6 +4,8 @@
 
 The production Docker image (docker-compose prod and staging) no longer re-runs the database seeder on every start. It seeds only when FIBES_RUN_SEED=true, the same rule as the Render and Railway start scripts.
 
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/33
+
 The updates branch no longer re-runs the database seeder on every start, which could reset role permissions and the admin account. It now seeds only when FIBES_RUN_SEED=true, the same rule main already has. The automatic checks on GitHub now allow the sandbox these boot-script tests need.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/31
