@@ -1,5 +1,5 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { useCallback, useEffect, useState, type ComponentType, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { KpiStrip } from '@/components/dashboard/KpiStrip';
 import { PeriodBar } from '@/components/dashboard/PeriodBar';
 import { QueueList } from '@/components/dashboard/QueueList';
@@ -49,22 +49,67 @@ export default function Dashboard({
     const [TileDrawer, setTileDrawer] = useState<DrawerComponent | null>(null);
     const [reloading, setReloading] = useState(false);
     const [failed, setFailed] = useState(false);
+    const [recovered, setRecovered] = useState(false);
+    const failedRef = useRef(false);
+    const inFlight = useRef(0);
     const queues = attention?.queues ?? [];
     const waiting = queueTotal(queues);
+
+    const markFailed = useCallback(() => {
+        failedRef.current = true;
+        setFailed(true);
+        setRecovered(false);
+    }, []);
+
+    const markOk = useCallback(() => {
+        // Screen readers hear "up to date" once after a failure clears, not on every poll.
+        setRecovered(failedRef.current);
+        failedRef.current = false;
+        setFailed(false);
+    }, []);
 
     const reload = useCallback(() => {
         router.reload({
             only: ['tiles', 'attention'],
             onStart: () => setReloading(true),
             onFinish: () => setReloading(false),
-            onSuccess: () => setFailed(false),
-            onError: () => setFailed(true),
-            onNetworkError: () => setFailed(true),
+            onSuccess: markOk,
+            onError: markFailed,
+            // A 500/503 is not a validation error: Inertia reports it here. Show our
+            // own "couldn't refresh" badge instead of its full-page error modal.
+            onHttpException: () => {
+                markFailed();
+
+                return false;
+            },
+            onNetworkError: markFailed,
         });
+    }, [markFailed, markOk]);
+
+    // Count every visit, ours or the user's, so a poll never cancels a navigation.
+    useEffect(() => {
+        const offStart = router.on('start', () => {
+            inFlight.current += 1;
+        });
+        const offFinish = router.on('finish', () => {
+            inFlight.current = Math.max(0, inFlight.current - 1);
+        });
+
+        return () => {
+            offStart();
+            offFinish();
+        };
     }, []);
 
     useEffect(() => {
-        const timer = window.setInterval(reload, Math.max(5, refresh) * 1000);
+        const tick = () => {
+            if (document.hidden || inFlight.current > 0) {
+                return;
+            }
+
+            reload();
+        };
+        const timer = window.setInterval(tick, Math.max(5, refresh) * 1000);
 
         return () => window.clearInterval(timer);
     }, [refresh, reload]);
@@ -110,7 +155,7 @@ export default function Dashboard({
                     }
                 />
                 <p className="sr-only" aria-live="polite" data-testid="dashboard-status">
-                    {reloading ? t('dashboard.updating') : t('dashboard.up_to_date')}
+                    {recovered ? t('dashboard.up_to_date') : ''}
                 </p>
                 <PeriodBar
                     from={layout.data.from}
