@@ -2,6 +2,8 @@
 
 ## 2026-11-10
 
+Every pull request into updates or main now gets automatic checks: the backend tests, a code-style check, the TypeScript check, the frontend tests and a production build.
+
 The Files page now only shows files on customers, tickets, jobs, quotes and contracts you are allowed to see. Downloading or deleting someone else's file is refused. Files that aren't attached to a record are unchanged.
 
 Pull request: https://github.com/SamFIbes/fibes-crm/pull/21
