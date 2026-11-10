@@ -75,9 +75,9 @@ class LeadWebhookController extends Controller
 
     public function metaVerify(Request $request): Response|JsonResponse
     {
-        $mode = (string) ($request->query('hub_mode') ?? $request->query('hub.mode') ?? '');
-        $token = (string) ($request->query('hub_verify_token') ?? $request->query('hub.verify_token') ?? '');
-        $challenge = (string) ($request->query('hub_challenge') ?? $request->query('hub.challenge') ?? '');
+        $mode = $this->param($request, 'hub_mode', 'hub.mode');
+        $token = $this->param($request, 'hub_verify_token', 'hub.verify_token');
+        $challenge = $this->param($request, 'hub_challenge', 'hub.challenge');
         $expected = (string) config('fibes.webhooks.meta_verify_token');
 
         if ($mode !== 'subscribe' || $expected === '' || ! hash_equals($expected, $token)) {
@@ -114,5 +114,12 @@ class LeadWebhookController extends Controller
             'status' => $status,
             'detail' => $detail,
         ], $status);
+    }
+
+    private function param(Request $request, string $underscored, string $dotted): string
+    {
+        $value = $request->query($underscored) ?? $request->query($dotted);
+
+        return is_string($value) ? $value : '';
     }
 }
