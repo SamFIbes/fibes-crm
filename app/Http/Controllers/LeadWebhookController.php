@@ -9,16 +9,15 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;
+use Throwable;
 
 class LeadWebhookController extends Controller
 {
     public function webForm(Request $request, LeadDesk $leads): JsonResponse
     {
-        $secret = (string) config('fibes.webhooks.web_form_secret');
         $body = $request->getContent();
-        $given = $request->header('X-Fibes-Signature');
 
-        if ($secret === '' || ! is_string($given) || ! hash_equals(hash_hmac('sha256', $body, $secret), $given)) {
+        if (! $this->validWebFormSignature($request, $body)) {
             return $this->problem(401, 'The signature does not match.');
         }
 
@@ -28,56 +27,66 @@ class LeadWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        $turnstile = (string) config('fibes.webhooks.turnstile_secret');
+        // Answer retries and replays before Turnstile: a captcha token works
+        // only once, so a retry would otherwise fail even though the lead exists.
+        // Without an Idempotency-Key the signature itself identifies the
+        // submission, so replaying the same signed request cannot add a lead.
+        $key = $request->header('Idempotency-Key');
+        $done = is_string($key) && $key !== ''
+            ? 'lead-web:'.$key
+            : 'lead-web-sig:'.hash('sha256', (string) $request->header('X-Fibes-Signature'));
+        $claim = $done.':claim';
+        $cached = Cache::get($done);
 
-        if ($turnstile !== '') {
-            $check = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
-                'secret' => $turnstile,
-                'response' => (string) ($payload['turnstile_token'] ?? ''),
-                'remoteip' => $request->ip(),
-            ]);
-
-            if (! $check->ok() || $check->json('success') !== true) {
-                return $this->problem(422, 'The captcha check failed.');
-            }
+        if ($cached !== null) {
+            return response()->json($cached);
         }
 
-        $key = $request->header('Idempotency-Key');
+        if (! Cache::add($claim, 1, 60)) {
+            $cached = Cache::get($done);
 
-        if (is_string($key) && $key !== '' && Cache::has('lead-web:'.$key)) {
-            return response()->json(Cache::get('lead-web:'.$key));
+            return $cached !== null
+                ? response()->json($cached)
+                : $this->problem(409, 'This submission is still being processed.')->header('Retry-After', '2');
         }
 
         try {
-            $lead = $leads->capture([
-                'name' => $payload['name'] ?? null,
-                'phone' => $payload['phone'] ?? null,
-                'email' => $payload['email'] ?? null,
-                'service_type_interest' => $payload['service'] ?? null,
-                'channel' => 'web',
-                'utm' => is_array($payload['utm'] ?? null) ? $payload['utm'] : null,
-                'language' => $payload['language'] ?? null,
-                'force' => true,
-                'force_reason' => 'web-form',
-            ], null, $request, true);
-        } catch (InvalidArgumentException) {
-            return $this->problem(422, 'The phone number is not valid.');
+            $turnstile = (string) config('fibes.webhooks.turnstile_secret');
+
+            if ($turnstile !== '' && ! $this->captchaPasses($turnstile, $payload, $request)) {
+                return $this->problem(422, 'The captcha check failed.');
+            }
+
+            try {
+                $lead = $leads->capture([
+                    'name' => $payload['name'] ?? null,
+                    'phone' => $payload['phone'] ?? null,
+                    'email' => $payload['email'] ?? null,
+                    'service_type_interest' => $payload['service'] ?? null,
+                    'channel' => 'web',
+                    'utm' => is_array($payload['utm'] ?? null) ? $payload['utm'] : null,
+                    'language' => $payload['language'] ?? null,
+                    'force' => true,
+                    'force_reason' => 'web-form',
+                ], null, $request, true);
+            } catch (InvalidArgumentException) {
+                return $this->problem(422, 'The phone number is not valid.');
+            }
+
+            $json = ['id' => $lead->id, 'number' => $lead->number];
+            Cache::put($done, $json, now()->addDay());
+
+            return response()->json($json, 201);
+        } finally {
+            Cache::forget($claim);
         }
-
-        $json = ['id' => $lead->id, 'number' => $lead->number];
-
-        if (is_string($key) && $key !== '') {
-            Cache::put('lead-web:'.$key, $json, now()->addDay());
-        }
-
-        return response()->json($json, 201);
     }
 
     public function metaVerify(Request $request): Response|JsonResponse
     {
-        $mode = (string) ($request->query('hub_mode') ?? $request->query('hub.mode') ?? '');
-        $token = (string) ($request->query('hub_verify_token') ?? $request->query('hub.verify_token') ?? '');
-        $challenge = (string) ($request->query('hub_challenge') ?? $request->query('hub.challenge') ?? '');
+        $mode = $this->param($request, 'hub_mode', 'hub.mode');
+        $token = $this->param($request, 'hub_verify_token', 'hub.verify_token');
+        $challenge = $this->param($request, 'hub_challenge', 'hub.challenge');
         $expected = (string) config('fibes.webhooks.meta_verify_token');
 
         if ($mode !== 'subscribe' || $expected === '' || ! hash_equals($expected, $token)) {
@@ -106,13 +115,68 @@ class LeadWebhookController extends Controller
         return response()->json(['id' => $lead?->id, 'number' => $lead?->number]);
     }
 
+    private function validWebFormSignature(Request $request, string $body): bool
+    {
+        $secret = (string) config('fibes.webhooks.web_form_secret');
+        $given = $request->header('X-Fibes-Signature');
+
+        if ($secret === '' || ! is_string($given) || $given === '') {
+            return false;
+        }
+
+        $timestamp = $request->header('X-Fibes-Timestamp');
+
+        if ($timestamp === null) {
+            return ! config('fibes.webhooks.web_form_require_timestamp')
+                && hash_equals(hash_hmac('sha256', $body, $secret), $given);
+        }
+
+        // A timestamp that is present but stale or malformed never falls back
+        // to the body-only signature.
+        if (! is_string($timestamp) || ! ctype_digit($timestamp)
+            || abs(now()->getTimestamp() - (int) $timestamp) > (int) config('fibes.webhooks.web_form_tolerance_seconds', 300)) {
+            return false;
+        }
+
+        return hash_equals(hash_hmac('sha256', $timestamp.'.'.$body, $secret), $given);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function captchaPasses(string $secret, array $payload, Request $request): bool
+    {
+        try {
+            $check = Http::asForm()->timeout(5)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                'secret' => $secret,
+                'response' => (string) ($payload['turnstile_token'] ?? ''),
+                'remoteip' => $request->ip(),
+            ]);
+
+            return $check->ok() && $check->json('success') === true;
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
     private function problem(int $status, string $detail): JsonResponse
     {
         return response()->json([
             'type' => 'about:blank',
-            'title' => $status === 401 ? 'Unauthorized' : 'Unprocessable',
+            'title' => match ($status) {
+                401 => 'Unauthorized',
+                409 => 'Conflict',
+                default => 'Unprocessable',
+            },
             'status' => $status,
             'detail' => $detail,
         ], $status);
+    }
+
+    private function param(Request $request, string $underscored, string $dotted): string
+    {
+        $value = $request->query($underscored) ?? $request->query($dotted);
+
+        return is_string($value) ? $value : '';
     }
 }

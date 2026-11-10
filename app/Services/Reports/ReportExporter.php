@@ -6,6 +6,7 @@ use App\Models\ReportExport;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Settings\CommercialSettings;
+use App\Support\CsvCell;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -61,7 +62,7 @@ class ReportExporter
         fputcsv($handle, ['label', 'href']);
 
         foreach ($lines as $line) {
-            fputcsv($handle, [$line['label'], $line['href']]);
+            fputcsv($handle, CsvCell::row([$line['label'], $line['href']]));
         }
 
         rewind($handle);
