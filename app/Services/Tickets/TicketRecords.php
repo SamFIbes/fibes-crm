@@ -187,6 +187,7 @@ class TicketRecords
             'service_type' => $ticket->service?->service_type,
             'category' => [
                 'id' => $ticket->category_id,
+                'key' => $ticket->category?->key,
                 'name_en' => $ticket->category?->name_en,
                 'name_ar' => $ticket->category?->name_ar,
             ],

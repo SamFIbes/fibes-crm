@@ -88,6 +88,7 @@ class HandleInertiaRequests extends Middleware
         $map = [
             'customers' => ['customers.view'],
             'tickets' => ['tickets.view'],
+            'support_desk' => ['tickets.view'],
             'dispatch' => ['jobs.schedule'],
             'calls' => ['calls.log', 'calls.view'],
             'qa' => ['qa.score', 'qa.view'],
