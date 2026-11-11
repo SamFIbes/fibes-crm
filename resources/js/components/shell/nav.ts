@@ -1,4 +1,4 @@
-import { AlertTriangle, BarChart3, Boxes, CalendarCheck2, CalendarRange, ClipboardCheck, Coins, CreditCard, FileText, Headset, HeartHandshake, Kanban, LayoutDashboard, ListChecks, Map, MapPinned, Network, Package, Paperclip, Plug, ScrollText, Settings, ShieldCheck, Siren, Smartphone, Tags, Ticket, Trophy, Users, Zap, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, BarChart3, Inbox, Boxes, CalendarCheck2, CalendarRange, ClipboardCheck, Coins, CreditCard, FileText, Headset, HeartHandshake, Kanban, LayoutDashboard, ListChecks, Map, MapPinned, Network, Package, Paperclip, Plug, ScrollText, Settings, ShieldCheck, Siren, Smartphone, Tags, Ticket, Trophy, Users, Zap, type LucideIcon } from 'lucide-react';
 
 export type NavItem = {
     href: string;
@@ -13,6 +13,7 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
             { href: '/dashboard', key: 'dashboard', icon: LayoutDashboard },
             { href: '/customers', key: 'customers', icon: Users },
             { href: '/tickets', key: 'tickets', icon: Ticket },
+            { href: '/tickets/desk', key: 'support_desk', icon: Inbox },
             { href: '/dispatch', key: 'dispatch', icon: CalendarRange },
             { href: '/incidents', key: 'incidents', icon: Siren },
             { href: '/calls', key: 'calls', icon: Headset },

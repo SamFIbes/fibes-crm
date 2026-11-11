@@ -17,6 +17,7 @@ use App\Services\Integrations\WhatsAppBusinessClient;
 use App\Services\Integrations\WhatsAppDesk;
 use App\Services\Tickets\EscalationLadder;
 use App\Services\Tickets\IncidentRecords;
+use App\Services\Tickets\SupportDesk;
 use App\Services\Tickets\TicketRecords;
 use App\Support\Access\AccessGate;
 use Illuminate\Http\JsonResponse;
@@ -91,6 +92,40 @@ class TicketController extends Controller
             'can_escalate' => $access->allows($actor, 'tickets.escalate'),
             'service_types' => array_keys(config('fibes.service_types')),
             'prefill' => $this->prefill($request, $records, $actor),
+        ]);
+    }
+
+    public function desk(Request $request, TicketRecords $records, SupportDesk $desk, AccessGate $access): Response
+    {
+        $actor = $this->actor($request, $access);
+        $filters = [
+            'q' => (string) $request->string('q'),
+            'status' => (string) $request->string('status'),
+            'priority' => (string) $request->string('priority'),
+            'assignee_id' => $request->integer('assignee_id') ?: null,
+            'area_id' => $request->integer('area_id') ?: null,
+            'service_type' => (string) $request->string('service_type'),
+            'sla' => (string) $request->string('sla'),
+            'mine' => $request->boolean('mine'),
+            'category_id' => $request->integer('category_id') ?: null,
+            'channel' => (string) $request->string('channel'),
+        ];
+        $locale = app()->getLocale();
+        $inbox = $desk->inbox($actor, $filters);
+        $ticketId = $request->integer('ticket') ?: null;
+        $selected = $desk->selected($actor, $ticketId, $inbox, $locale);
+
+        return Inertia::render('Tickets/Desk', [
+            'inbox' => $inbox,
+            'filters' => $filters,
+            'categories' => TicketCategory::query()->where('is_active', true)->orderBy('sort')->get(['id', 'name_en', 'name_ar']),
+            'areas' => Area::query()->orderBy('name_en')->get(['id', 'name_en', 'name_ar']),
+            'queue' => $desk->queue($actor, $locale),
+            'selected' => $selected,
+            'customer' => $desk->profile($actor, $selected),
+            'insights' => $desk->insights($actor),
+            'can_reply' => $records->canTouch($actor),
+            'service_types' => array_keys(config('fibes.service_types')),
         ]);
     }
 

@@ -210,6 +210,7 @@ Route::middleware(['auth', 'account.security'])->group(function () {
     Route::get('/tickets/lookup', [TicketController::class, 'lookup'])->middleware('permission:tickets.create')->name('tickets.lookup');
     Route::post('/tickets', [TicketController::class, 'store'])->middleware('permission:tickets.create')->name('tickets.store');
     Route::post('/ticket-views', [TicketController::class, 'storeView'])->middleware('permission:tickets.view')->name('tickets.views.store');
+    Route::get('/tickets/desk', [TicketController::class, 'desk'])->middleware('permission:tickets.view')->name('tickets.desk');
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->middleware('permission:tickets.view')->name('tickets.show');
     Route::patch('/tickets/{ticket}/status', [TicketController::class, 'updateStatus'])->middleware('permission:tickets.view')->name('tickets.status');
     Route::post('/tickets/{ticket}/escalate', [TicketController::class, 'escalate'])->middleware('permission:tickets.escalate')->name('tickets.escalate');

@@ -136,6 +136,9 @@ export default function TicketsIndex({
             <Head title={t('tickets.title')} />
             <PageHeader title={t('tickets.title')} sub={t('tickets.subtitle')} actions={
                 <div className="flex gap-2">
+                    <Button type="button" variant="outline" asChild>
+                        <Link href="/tickets/desk">{t('tickets.desk_open')}</Link>
+                    </Button>
                     <Button type="button" variant={mode === 'list' ? 'default' : 'outline'} onClick={() => setMode('list')}>{t('tickets.list')}</Button>
                     <Button type="button" variant={mode === 'board' ? 'default' : 'outline'} onClick={() => setMode('board')}>{t('tickets.board')}</Button>
                     {can_create ? <Button type="button" onClick={() => setOpen(true)}>{t('tickets.new')}</Button> : null}
