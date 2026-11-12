@@ -1,9 +1,10 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Deferred, Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
 import { navGroups } from '@/components/shell/nav';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
+import { CampaignResults, CampaignResultsSkeleton, type CampaignPayload } from '@/components/dashboard/CampaignResults';
 import { useI18n } from '@/lib/i18n';
 import type { SharedProps } from '@/types';
 
@@ -14,6 +15,8 @@ export default function Dashboard({
     tiles,
     choices,
     from,
+    campaignsAllowed,
+    campaigns,
     to,
     refresh,
 }: {
@@ -21,6 +24,8 @@ export default function Dashboard({
     tiles: Tile[];
     choices: string[];
     from: string;
+    campaignsAllowed?: boolean;
+    campaigns?: CampaignPayload;
     to: string;
     refresh: number;
 }) {
@@ -83,6 +88,11 @@ export default function Dashboard({
                         );
                     })}
                 </div>
+                {campaignsAllowed ? (
+                    <Deferred data="campaigns" fallback={<CampaignResultsSkeleton />}>
+                        <CampaignResults data={campaigns} onRetry={() => router.reload({ only: ['campaigns'] })} />
+                    </Deferred>
+                ) : null}
             </div>
         </AppShell>
     );
