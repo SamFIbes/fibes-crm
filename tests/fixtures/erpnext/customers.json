@@ -1,0 +1,26 @@
+[
+  {
+    "name": "CUST-SYNTH-001",
+    "customer_name": "Acme Fiber Test",
+    "customer_type": "Company",
+    "customer_group": "Commercial",
+    "territory": "Beirut Synth",
+    "mobile_no": "96171111001",
+    "email_id": "billing@acme-fiber.test",
+    "tax_id": "SYNTH-TAX-001",
+    "disabled": 0,
+    "modified": "2026-11-01 10:00:00"
+  },
+  {
+    "name": "CUST-SYNTH-002",
+    "customer_name": "Nour Sample Residential",
+    "customer_type": "Individual",
+    "customer_group": "Residential",
+    "territory": "Mount Lebanon Synth",
+    "mobile_no": "+96171111002",
+    "email_id": "nour@example.test",
+    "tax_id": null,
+    "disabled": 0,
+    "modified": "2026-11-02 11:00:00"
+  }
+]

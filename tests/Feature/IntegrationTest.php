@@ -3,6 +3,7 @@
 use App\Jobs\PushErpNextMaterialRequest;
 use App\Models\AuditLog;
 use App\Models\Customer;
+use App\Models\ErpSyncRun;
 use App\Models\Expense;
 use App\Models\IntegrationAttempt;
 use App\Models\NetworkNode;
@@ -291,3 +292,37 @@ function integrationsPayload(bool $erpEnabled = false): array
         ],
     ];
 }
+
+it('lists customer sync run counts on the integrations desk without customer details', function () {
+    $admin = User::factory()->superAdmin()->create();
+    ErpSyncRun::query()->create([
+        'mode' => 'dry_run',
+        'status' => 'succeeded',
+        'scanned' => 10,
+        'would_create' => 7,
+        'would_update' => 2,
+        'unchanged' => 1,
+        'ambiguous' => 0,
+        'errors' => 0,
+        'contacts' => 0,
+        'addresses' => 0,
+        'hub_contact_count' => 4,
+        'hub_address_count' => 3,
+        'message' => null,
+        'started_at' => now(),
+        'finished_at' => now(),
+    ]);
+
+    $this->actingAs($admin)->get('/settings/integrations')
+        ->assertOk()
+        ->assertDontSee('shared@synth.test')
+        ->assertInertia(fn ($page) => $page
+            ->component('Settings/Integrations')
+            ->has('erp_sync_runs', 1)
+            ->where('erp_sync_runs.0.mode', 'dry_run')
+            ->where('erp_sync_runs.0.would_create', 7)
+            ->where('erp_sync_runs.0.would_update', 2)
+            ->where('erp_sync_runs.0.unchanged', 1)
+            ->missing('erp_sync_runs.0.email'));
+});
+
