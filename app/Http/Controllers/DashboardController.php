@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\Leads\LeadFollowUps;
 use App\Services\Reports\ReportDesk;
 use App\Services\Settings\CommercialSettings;
 use App\Support\Access\AccessGate;
@@ -24,6 +25,8 @@ class DashboardController extends Controller
             'home' => $reports->home($actor),
             'tiles' => $reports->tiles($actor, $from, $to),
             'choices' => $reports->allowedKeys($actor),
+            'followUpsAllowed' => app(LeadFollowUps::class)->allows($actor),
+            'followUps' => Inertia::defer(fn () => $this->followUps($actor), 'follow-ups'),
             'from' => $from,
             'to' => $to,
             'refresh' => max(5, (int) $commercial->get('report_refresh_seconds')),
@@ -38,5 +41,25 @@ class DashboardController extends Controller
         $reports->saveLayout($actor, $data['keys'] ?? []);
 
         return back()->with('status', __('ui.reports.saved'));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function followUps(User $actor): ?array
+    {
+        $desk = app(LeadFollowUps::class);
+
+        if (! $desk->allows($actor)) {
+            return null;
+        }
+
+        try {
+            return $desk->for($actor);
+        } catch (\Throwable $error) {
+            report($error);
+
+            return ['error' => true];
+        }
     }
 }
