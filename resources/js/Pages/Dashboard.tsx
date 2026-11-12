@@ -1,8 +1,9 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Deferred, Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
 import { navGroups } from '@/components/shell/nav';
 import { Button } from '@/components/ui/button';
+import { LeadFollowUps, LeadFollowUpsSkeleton, type FollowUpsPayload } from '@/components/dashboard/LeadFollowUps';
 import { PageHeader } from '@/components/ui/page-header';
 import { useI18n } from '@/lib/i18n';
 import type { SharedProps } from '@/types';
@@ -13,6 +14,8 @@ export default function Dashboard({
     home,
     tiles,
     choices,
+    followUpsAllowed,
+    followUps,
     from,
     to,
     refresh,
@@ -20,6 +23,8 @@ export default function Dashboard({
     home: string;
     tiles: Tile[];
     choices: string[];
+    followUpsAllowed?: boolean;
+    followUps?: FollowUpsPayload;
     from: string;
     to: string;
     refresh: number;
@@ -51,6 +56,11 @@ export default function Dashboard({
                     <label className="text-sm">{t('reports.to')}<input className="ms-2 h-10 rounded-ctl border border-input bg-card px-2" type="date" value={layout.data.to} onChange={(event) => layout.setData('to', event.target.value)} /></label>
                     <Button type="submit" size="sm" variant="outline">{t('reports.apply')}</Button>
                 </form>
+                {followUpsAllowed ? (
+                    <Deferred data="followUps" fallback={<LeadFollowUpsSkeleton />}>
+                        <LeadFollowUps data={followUps} onRetry={() => router.reload({ only: ['followUps'] })} />
+                    </Deferred>
+                ) : null}
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="dashboard-tiles">
                     {tiles.map((tile) => (
                         <Link key={tile.key} href={tile.href} className="card p-4" data-testid={`tile-${tile.key}`}>
