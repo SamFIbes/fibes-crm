@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\Reports\ReportDesk;
+use App\Services\Reports\SalesFunnel;
 use App\Services\Settings\CommercialSettings;
 use App\Support\Access\AccessGate;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +24,8 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'home' => $reports->home($actor),
             'tiles' => $reports->tiles($actor, $from, $to),
+            'funnelAllowed' => app(SalesFunnel::class)->allows($actor),
+            'funnel' => Inertia::defer(fn () => $this->funnel($actor, $from, $to, $request->integer('funnel_pipeline') ?: null), 'funnel'),
             'choices' => $reports->allowedKeys($actor),
             'from' => $from,
             'to' => $to,
@@ -38,5 +41,25 @@ class DashboardController extends Controller
         $reports->saveLayout($actor, $data['keys'] ?? []);
 
         return back()->with('status', __('ui.reports.saved'));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function funnel(User $actor, string $from, string $to, ?int $pipelineId): ?array
+    {
+        $desk = app(SalesFunnel::class);
+
+        if (! $desk->allows($actor)) {
+            return null;
+        }
+
+        try {
+            return $desk->build($actor, $from, $to, $pipelineId);
+        } catch (\Throwable $error) {
+            report($error);
+
+            return ['error' => true];
+        }
     }
 }

@@ -1,7 +1,8 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Deferred, Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
 import { navGroups } from '@/components/shell/nav';
+import { FunnelLeaderboard, FunnelLeaderboardSkeleton, type FunnelPayload } from '@/components/dashboard/FunnelLeaderboard';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { useI18n } from '@/lib/i18n';
@@ -12,6 +13,8 @@ type Tile = { key: string; value: string; href: string };
 export default function Dashboard({
     home,
     tiles,
+    funnelAllowed,
+    funnel,
     choices,
     from,
     to,
@@ -19,6 +22,8 @@ export default function Dashboard({
 }: {
     home: string;
     tiles: Tile[];
+    funnelAllowed?: boolean;
+    funnel?: FunnelPayload;
     choices: string[];
     from: string;
     to: string;
@@ -71,6 +76,15 @@ export default function Dashboard({
                     </div>
                     <Button className="mt-3" type="submit" size="sm" variant="outline">{t('reports.save_layout')}</Button>
                 </form>
+                {funnelAllowed ? (
+                    <Deferred data="funnel" fallback={<FunnelLeaderboardSkeleton />}>
+                        <FunnelLeaderboard
+                            data={funnel}
+                            onPipeline={(id) => router.reload({ only: ['funnel'], data: { funnel_pipeline: id } })}
+                            onRetry={() => router.reload({ only: ['funnel'] })}
+                        />
+                    </Deferred>
+                ) : null}
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {links.map((item) => {
                         const Icon = item.icon;

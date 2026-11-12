@@ -252,10 +252,27 @@ class CommissionDesk
     public function leaderboard(string $period, ?int $teamId = null): array
     {
         [$from, $to] = $this->range($period);
+
+        return $this->leaderboardBetween($from, $to, $teamId);
+    }
+
+    /**
+     * Won deal events per owner between two dates, biggest total first.
+     * The dashboard and /performance share this so they always agree.
+     *
+     * @param  list<int>|null  $ownerIds  null means every owner
+     * @return list<array{user_id: int, name: string, total: string, deals: int}>
+     */
+    public function leaderboardBetween(string $from, string $to, ?int $teamId = null, ?array $ownerIds = null): array
+    {
         $query = DealEvent::query()->where('kind', 'won')->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to);
 
         if ($teamId) {
             $query->where('team_id', $teamId);
+        }
+
+        if ($ownerIds !== null) {
+            $query->whereIn('owner_id', $ownerIds === [] ? [-1] : $ownerIds);
         }
 
         return $query->selectRaw('owner_id, sum(amount) as total, count(*) as deals')
