@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StockLocation;
+use App\Models\ErpSyncRun;
 use App\Models\User;
 use App\Services\Integrations\ErpNext\ErpNextClient;
 use App\Services\Integrations\GrandstreamClient;
@@ -28,6 +29,16 @@ class IntegrationController extends Controller
             'cards' => $settings->cards(),
             'locations' => StockLocation::query()->orderBy('name')->get(['id', 'name', 'kind']),
             'can_manage' => $actor instanceof User && $access->allows($actor, 'integrations.manage'),
+            'erp_sync_runs' => ErpSyncRun::query()
+                ->orderByDesc('started_at')
+                ->limit(20)
+                ->get([
+                    'id', 'mode', 'status', 'scanned', 'would_create', 'would_update',
+                    'unchanged', 'ambiguous', 'errors', 'contacts', 'addresses',
+                    'hub_contact_count', 'hub_address_count', 'cursor', 'message',
+                    'started_at', 'finished_at',
+                ])
+                ->toArray(),
         ]);
     }
 

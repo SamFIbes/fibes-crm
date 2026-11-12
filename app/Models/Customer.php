@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Customer extends Model
 {
     protected $fillable = [
-        'account_no', 'type', 'status', 'name_en', 'name_ar', 'company_name', 'email',
+        'account_no', 'erp_name', 'type', 'status', 'name_en', 'name_ar', 'company_name', 'email',
         'whatsapp_e164', 'area_id', 'building', 'floor', 'landmark', 'latitude', 'longitude',
         'tags', 'notes', 'owner_id', 'team_id', 'whatsapp_consent',
     ];

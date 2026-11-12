@@ -12,6 +12,26 @@ type WarehouseRow = { location_id: number; warehouse: string };
 type Location = { id: number; name: string; kind: string };
 type Status = 'never_connected' | 'configured' | 'synced' | 'error';
 
+type ErpSyncRunRow = {
+    id: number;
+    mode: string;
+    status: string;
+    scanned: number;
+    would_create: number;
+    would_update: number;
+    unchanged: number;
+    ambiguous: number;
+    errors: number;
+    contacts: number;
+    addresses: number;
+    hub_contact_count: number | null;
+    hub_address_count: number | null;
+    cursor: string | null;
+    message: string | null;
+    started_at: string | null;
+    finished_at: string | null;
+};
+
 type Card = {
     key: string;
     enabled: boolean;
@@ -83,7 +103,7 @@ function draftFor(card: Card, locations: Location[]): Draft {
     };
 }
 
-export default function IntegrationsPage({ cards, locations, can_manage }: { cards: Card[]; locations: Location[]; can_manage: boolean }) {
+export default function IntegrationsPage({ cards, locations, can_manage, erp_sync_runs = [] }: { cards: Card[]; locations: Location[]; can_manage: boolean; erp_sync_runs?: ErpSyncRunRow[] }) {
     const { t } = useI18n();
     const page = usePage<SharedProps>();
     const form = useForm<{ integrations: Record<string, Draft> }>({
@@ -152,6 +172,48 @@ export default function IntegrationsPage({ cards, locations, can_manage }: { car
                             ) : null}
                             {card.last_sync_at ? <p className="text-sm text-muted" dir="ltr">{t('integrations.last_sync', { time: card.last_sync_at })}</p> : null}
                             {card.last_error ? <p className="text-sm text-bad">{t('integrations.last_error')}: {card.last_error}</p> : null}
+                            {card.key === 'erpnext' ? (
+                                <div data-testid="erp-sync-runs">
+                                    <p className="text-sm font-semibold">{t('integrations.sync_runs')}</p>
+                                    <p className="mt-1 text-xs text-muted">{t('integrations.crm_sync_help')}</p>
+                                    {erp_sync_runs.length === 0 ? (
+                                        <p className="mt-2 text-sm text-muted">{t('integrations.sync_runs_empty')}</p>
+                                    ) : (
+                                        <div className="mt-2 overflow-x-auto">
+                                            <table className="w-full text-left text-sm">
+                                                <thead>
+                                                    <tr className="text-muted">
+                                                        <th className="py-1 pr-3 font-medium">{t('integrations.sync_mode')}</th>
+                                                        <th className="py-1 pr-3 font-medium">{t('integrations.sync_status')}</th>
+                                                        <th className="py-1 pr-3 font-medium">{t('integrations.sync_scanned')}</th>
+                                                        <th className="py-1 pr-3 font-medium">{t('integrations.sync_would_create')}</th>
+                                                        <th className="py-1 pr-3 font-medium">{t('integrations.sync_would_update')}</th>
+                                                        <th className="py-1 pr-3 font-medium">{t('integrations.sync_skip')}</th>
+                                                        <th className="py-1 pr-3 font-medium">{t('integrations.sync_conflicts')}</th>
+                                                        <th className="py-1 pr-3 font-medium">{t('integrations.sync_errors')}</th>
+                                                        <th className="py-1 font-medium">{t('integrations.sync_started')}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {erp_sync_runs.map((run) => (
+                                                        <tr key={run.id}>
+                                                            <td className="py-1 pr-3">{t(`integrations.sync_mode_${run.mode}`)}</td>
+                                                            <td className="py-1 pr-3">{t(`integrations.sync_status_${run.status}`)}</td>
+                                                            <td className="py-1 pr-3" dir="ltr">{run.scanned}</td>
+                                                            <td className="py-1 pr-3" dir="ltr">{run.would_create}</td>
+                                                            <td className="py-1 pr-3" dir="ltr">{run.would_update}</td>
+                                                            <td className="py-1 pr-3" dir="ltr">{run.unchanged}</td>
+                                                            <td className="py-1 pr-3" dir="ltr">{run.ambiguous}</td>
+                                                            <td className="py-1 pr-3" dir="ltr">{run.errors}</td>
+                                                            <td className="py-1" dir="ltr">{run.started_at ?? ''}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : null}
                             {card.key !== 'whatsapp' ? (
                                 <Field id={`${card.key}-url`} label={t('integrations.url')} error={form.errors[`integrations.${card.key}.url`]}>
                                     <input id={`${card.key}-url`} className={solidField} style={solidFieldStyle} dir="ltr" value={draft.url} disabled={!can_manage} onChange={(event) => patch(card.key, { url: event.target.value })} />

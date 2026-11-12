@@ -35,6 +35,18 @@ Outbound calls run on the queue. Retries use the webhook attempt count and pause
 
 On Stock, **Request from ERP** is disabled, with the reason, until the flag and the key exist. Issuing stock can record a customer, a base station, a field job, or an expense on the movement even while ERP writes stay off.
 
+
+
+## CRM customer sync
+
+`php artisan erpnext:crm-sync` pulls Hub ERP (ERPNext) customers into fibes. The default is a dry run that only prints counts (would create, would update, skip, conflicts, errors). It never writes customers, phones, or mapping rows. A run log is stored in `erp_sync_runs` and shown on Settings → Integrations, without names or emails.
+
+Live writes need both `--apply` and `FIBES_ERPNEXT_CRM_APPLY=true`. Apply upserts by the ERPNext Customer name into `customers.erp_name` and `erp_links`. Customer group and territory are stored on the mapping row. Territory may set `area_id` only when that field is empty and exactly one existing area matches the territory name. Linked contacts and addresses are mapped on apply: extra phones are added when they are free, and building, floor, and landmark are filled only when empty. Existing fibes rows are never deleted. The command never writes back to ERPNext.
+
+Credentials prefer `ERPNEXT_URL` / `ERPNEXT_API_KEY` / `ERPNEXT_API_SECRET`, and fall back to `FIBES_ERPNEXT_*`. `--live-smoke` reports Hub counts only. `--fixture=` maps synthetic fixtures for customers, leads, quotations, and sales invoices as a preview; it does not pull those other types live.
+
+The additive tables are `erp_links` and `erp_sync_runs`. `customers.erp_name` is a nullable unique column used as the upsert key.
+
 ## The others
 
 Each of these stays on the behaviour below until its environment flag, its secret, its base URL where one is required, and the desk switch are all on. Test connection makes a real safe ping only in that case. Otherwise it says the connection is not configured and does not call out.
