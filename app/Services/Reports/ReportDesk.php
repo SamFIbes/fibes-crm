@@ -322,6 +322,16 @@ class ReportDesk
     }
 
     /**
+     * Owner ids the user may report on: null means everyone, an empty list means no one.
+     *
+     * @return list<int>|null
+     */
+    public function ownerIds(User $user): ?array
+    {
+        return $this->ids($user);
+    }
+
+    /**
      * @return list<int>|null
      */
     private function ids(User $user): ?array

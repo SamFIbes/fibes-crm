@@ -1,6 +1,7 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Deferred, Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { AppShell } from '@/components/shell/AppShell';
+import { SalesOverview, SalesOverviewSkeleton, type SalesPayload } from '@/components/dashboard/SalesOverview';
 import { navGroups } from '@/components/shell/nav';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
@@ -11,6 +12,8 @@ type Tile = { key: string; value: string; href: string };
 
 export default function Dashboard({
     home,
+    salesAllowed,
+    sales,
     tiles,
     choices,
     from,
@@ -18,6 +21,8 @@ export default function Dashboard({
     refresh,
 }: {
     home: string;
+    salesAllowed?: boolean;
+    sales?: SalesPayload;
     tiles: Tile[];
     choices: string[];
     from: string;
@@ -59,6 +64,11 @@ export default function Dashboard({
                         </Link>
                     ))}
                 </div>
+                {salesAllowed ? (
+                    <Deferred data="sales" fallback={<SalesOverviewSkeleton />}>
+                        <SalesOverview data={sales} onRetry={() => router.reload({ only: ['sales'] })} />
+                    </Deferred>
+                ) : null}
                 <form className="card mt-4 p-4" onSubmit={(event) => { event.preventDefault(); layout.post('/dashboard/layout'); }}>
                     <h2 className="text-sm font-semibold">{t('reports.layout')}</h2>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
