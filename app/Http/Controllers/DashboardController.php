@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\Reports\ReportDesk;
+use App\Services\Reports\SalesCharts;
 use App\Services\Settings\CommercialSettings;
 use App\Support\Access\AccessGate;
 use Illuminate\Http\RedirectResponse;
@@ -13,7 +14,7 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request, AccessGate $access, ReportDesk $reports, CommercialSettings $commercial): Response
+    public function index(Request $request, AccessGate $access, ReportDesk $reports, CommercialSettings $commercial, SalesCharts $sales): Response
     {
         $actor = $access->effective($request);
         abort_unless($actor instanceof User, 403);
@@ -22,6 +23,8 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'home' => $reports->home($actor),
+            'salesAllowed' => $sales->allows($actor),
+            'sales' => Inertia::defer(fn () => $this->salesCharts($sales, $actor, $from, $to), 'sales'),
             'tiles' => $reports->tiles($actor, $from, $to),
             'choices' => $reports->allowedKeys($actor),
             'from' => $from,
@@ -38,5 +41,23 @@ class DashboardController extends Controller
         $reports->saveLayout($actor, $data['keys'] ?? []);
 
         return back()->with('status', __('ui.reports.saved'));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function salesCharts(SalesCharts $sales, User $actor, string $from, string $to): ?array
+    {
+        if (! $sales->allows($actor)) {
+            return null;
+        }
+
+        try {
+            return $sales->build($actor, $from, $to);
+        } catch (\Throwable $error) {
+            report($error);
+
+            return ['error' => true];
+        }
     }
 }
