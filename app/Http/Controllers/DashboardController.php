@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\Reports\CampaignResults;
 use App\Services\Reports\ReportDesk;
 use App\Services\Settings\CommercialSettings;
 use App\Support\Access\AccessGate;
@@ -25,6 +26,8 @@ class DashboardController extends Controller
             'tiles' => $reports->tiles($actor, $from, $to),
             'choices' => $reports->allowedKeys($actor),
             'from' => $from,
+            'campaignsAllowed' => app(CampaignResults::class)->allows($actor),
+            'campaigns' => Inertia::defer(fn () => $this->campaigns($actor, $from, $to), 'campaigns'),
             'to' => $to,
             'refresh' => max(5, (int) $commercial->get('report_refresh_seconds')),
         ]);
@@ -38,5 +41,25 @@ class DashboardController extends Controller
         $reports->saveLayout($actor, $data['keys'] ?? []);
 
         return back()->with('status', __('ui.reports.saved'));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function campaigns(User $actor, string $from, string $to): ?array
+    {
+        $campaigns = app(CampaignResults::class);
+
+        if (! $campaigns->allows($actor)) {
+            return null;
+        }
+
+        try {
+            return $campaigns->build($actor, $from, $to);
+        } catch (\Throwable $error) {
+            report($error);
+
+            return ['error' => true];
+        }
     }
 }
