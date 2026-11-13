@@ -95,6 +95,17 @@ return [
             ],
         ],
 
+        'm365oauth' => [
+            'transport' => 'm365oauth',
+            'host' => env('MAIL_HOST', 'smtp.office365.com'),
+            'port' => env('MAIL_PORT', 587),
+            'username' => env('MAIL_USERNAME'),
+            'tenant_id' => env('MAIL_M365_TENANT_ID'),
+            'client_id' => env('MAIL_M365_CLIENT_ID'),
+            'client_secret' => env('MAIL_M365_CLIENT_SECRET'),
+            'token_skew_seconds' => (int) env('MAIL_M365_TOKEN_SKEW_SECONDS', 60),
+        ],
+
     ],
 
     /*
