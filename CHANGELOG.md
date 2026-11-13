@@ -4,7 +4,7 @@
 
 The CRM can send mail through Microsoft 365 using an app login instead of a mailbox password. Ordinary SMTP settings are unchanged. This stays off until you set MAIL_MAILER to m365oauth and add the Microsoft app values.
 
-Pull request:
+Pull request: https://github.com/SamFIbes/fibes-crm/pull/48
 
 ## 2026-11-08
 
