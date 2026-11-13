@@ -9,6 +9,8 @@ use App\Listeners\OpenSubscriptionFromActivation;
 use App\Listeners\RecordActivatedPerformance;
 use App\Listeners\RecordWonPerformance;
 use App\Logging\RedactPii;
+use App\Mail\Transport\Microsoft365OauthTokenClient;
+use App\Mail\Transport\Microsoft365OauthTransport;
 use App\Services\Automations\AutomationDesk;
 use App\Services\Billing\LedgerBillingGate;
 use App\Services\Collections\RadiusDriver;
@@ -37,8 +39,10 @@ use App\Services\Quotes\SmsDriver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Symfony\Component\Mailer\Transport\TransportInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -91,6 +95,15 @@ class AppServiceProvider extends ServiceProvider
             app(AutomationDesk::class)->emit('order.activated', [
                 'subject_type' => 'order', 'subject_id' => $event->order->id, 'customer_id' => $event->order->customer_id,
             ]);
+        });
+
+        Mail::extend('m365oauth', function (array $config): TransportInterface {
+            return new Microsoft365OauthTransport(
+                new Microsoft365OauthTokenClient,
+                (string) ($config['host'] ?? 'smtp.office365.com'),
+                (int) ($config['port'] ?? 587),
+                (string) ($config['username'] ?? ''),
+            );
         });
     }
 }
