@@ -60,6 +60,7 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
         label: 'nav.sales',
         items: [
             { href: '/leads', key: 'leads', icon: Users },
+            { href: '/onboarding', key: 'onboarding', icon: Kanban },
             { href: '/opportunities', key: 'opportunities', icon: Kanban },
             { href: '/surveys', key: 'surveys', icon: MapPinned },
             { href: '/quotes', key: 'quotes', icon: FileText },

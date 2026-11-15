@@ -15,6 +15,7 @@ Schedule::command('collections:run')->dailyAt('06:30');
 Schedule::command('retention:run')->dailyAt('07:00');
 Schedule::command('reports:digest')->hourly();
 Schedule::command('automations:run')->hourly();
+Schedule::command('onboarding:sync')->everyTenMinutes();
 Schedule::command('backups:run')->dailyAt('02:00');
 Schedule::command('backups:restore-test')->monthlyOn(1, '04:00');
 

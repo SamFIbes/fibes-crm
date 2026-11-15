@@ -115,6 +115,7 @@ class HandleInertiaRequests extends Middleware
             'files' => ['attachments.view', 'attachments.upload'],
             'inventory' => ['inventory.view', 'inventory.move'],
             'leads' => ['leads.view'],
+            'onboarding' => ['leads.view', 'opportunities.view'],
             'opportunities' => ['opportunities.view', 'opportunities.view_won'],
             'surveys' => ['jobs.view', 'jobs.schedule', 'jobs.complete', 'jobs.request'],
             'quotes' => ['quotes.create', 'quotes.approve', 'contracts.manage', 'contracts.view'],

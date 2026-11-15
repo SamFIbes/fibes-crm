@@ -182,6 +182,9 @@ export default function CustomerShow({
                                     <Button type="button" size="sm" onClick={() => router.post('/calls/dial', { phone: customer.phones[0] }, { preserveScroll: true })}>{t('customers.call')}</Button>
                                 </div>
                             ) : null}
+                            <div className="md:col-span-2">
+                                <Button type="button" size="sm" variant="outline" onClick={() => router.post(`/customers/${customer.id}/onboarding-card`, {}, { preserveScroll: true })}>{t('onboarding.add_to_board')}</Button>
+                            </div>
                             <Fact ltr label={t('customers.whatsapp')} value={customer.whatsapp || '—'} />
                             {whatsapp_live && customer.whatsapp_consent ? (
                                 <div>
