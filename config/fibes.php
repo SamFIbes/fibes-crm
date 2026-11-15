@@ -342,4 +342,30 @@ return [
         'export_per_hour' => 10,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Client onboarding board
+    |--------------------------------------------------------------------------
+    |
+    | Stages live in onboarding_stages and can be renamed later. These
+    | defaults are used only when that table is empty. Stale days can also
+    | be changed from the board settings screen, which then wins.
+    |
+    */
+
+    'onboarding' => [
+        'stale_days' => (int) env('FIBES_ONBOARDING_STALE_DAYS', 5),
+        'backfill_days' => (int) env('FIBES_ONBOARDING_BACKFILL_DAYS', 30),
+        'column_page' => 20,
+        'stages' => [
+            ['key' => 'new_lead', 'name_en' => 'New lead from sales', 'name_ar' => 'عميل محتمل جديد من المبيعات', 'position' => 1, 'task_title_en' => 'Contact the client', 'task_title_ar' => 'التواصل مع العميل', 'is_terminal' => false],
+            ['key' => 'contacted', 'name_en' => 'Contacted', 'name_ar' => 'تم التواصل', 'position' => 2, 'task_title_en' => 'Book a site survey', 'task_title_ar' => 'تحديد موعد معاينة الموقع', 'is_terminal' => false],
+            ['key' => 'site_survey', 'name_en' => 'Site survey', 'name_ar' => 'معاينة الموقع', 'position' => 3, 'task_title_en' => 'Complete the site survey', 'task_title_ar' => 'إتمام معاينة الموقع', 'is_terminal' => false],
+            ['key' => 'quote_sent', 'name_en' => 'Quote sent', 'name_ar' => 'أُرسل عرض السعر', 'position' => 4, 'task_title_en' => 'Follow up on the quote', 'task_title_ar' => 'متابعة عرض السعر', 'is_terminal' => false],
+            ['key' => 'contract_signed', 'name_en' => 'Contract signed', 'name_ar' => 'وُقّع العقد', 'position' => 5, 'task_title_en' => 'Schedule the installation', 'task_title_ar' => 'تحديد موعد التركيب', 'is_terminal' => false],
+            ['key' => 'installation_scheduled', 'name_en' => 'Installation scheduled', 'name_ar' => 'حُدد موعد التركيب', 'position' => 6, 'task_title_en' => 'Confirm the installation', 'task_title_ar' => 'تأكيد التركيب', 'is_terminal' => false],
+            ['key' => 'active', 'name_en' => 'Active', 'name_ar' => 'نشط', 'position' => 7, 'task_title_en' => 'Confirm the service is active', 'task_title_ar' => 'تأكيد أن الخدمة نشطة', 'is_terminal' => true],
+        ],
+    ],
+
 ];

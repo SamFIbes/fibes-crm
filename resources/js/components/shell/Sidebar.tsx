@@ -6,6 +6,7 @@ import { spring } from '@/lib/motion';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { SharedProps } from '@/types';
+import { OnboardingNavBadge } from '@/components/onboarding/OnboardingNavBadge';
 import { navGroups } from './nav';
 
 export function Sidebar({
@@ -76,7 +77,12 @@ export function Sidebar({
                                             >
                                                 {active ? <span className="absolute inset-0 rounded-[12px] bg-white/8 ring-1 ring-white/10" /> : null}
                                                 <Icon className={cn('relative size-[18px] shrink-0', active && 'text-mint')} />
-                                                {!collapsed ? <span className="relative truncate">{t(`nav.${item.key}`)}</span> : null}
+                                                {!collapsed ? (
+                                                    <span className="relative flex min-w-0 flex-1 items-center gap-2">
+                                                        <span className="truncate">{t(`nav.${item.key}`)}</span>
+                                                        {item.key === 'onboarding' ? <OnboardingNavBadge /> : null}
+                                                    </span>
+                                                ) : item.key === 'onboarding' ? <OnboardingNavBadge compact /> : null}
                                             </Link>
                                         </li>
                                     );
